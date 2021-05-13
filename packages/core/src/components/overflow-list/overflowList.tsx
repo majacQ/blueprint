@@ -20,9 +20,9 @@ import * as React from "react";
 import { Boundary } from "../../common/boundary";
 import * as Classes from "../../common/classes";
 import { OVERFLOW_LIST_OBSERVE_PARENTS_CHANGED } from "../../common/errors";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
+import { DISPLAYNAME_PREFIX, Props } from "../../common/props";
 import { shallowCompareKeys } from "../../common/utils";
-import { IResizeEntry } from "../resize-sensor/resizeObserverTypes";
+import { ResizeEntry } from "../resize-sensor/resizeObserverTypes";
 import { ResizeSensor } from "../resize-sensor/resizeSensor";
 
 /** @internal - do not expose this type */
@@ -32,7 +32,19 @@ export enum OverflowDirection {
     SHRINK,
 }
 
-export interface IOverflowListProps<T> extends IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type OverflowListProps<T> = IOverflowListProps<T>;
+/** @deprecated use OverflowListProps */
+export interface IOverflowListProps<T> extends Props {
+    /**
+     * Whether to force the overflowRenderer to always be called, even if there are zero items
+     * overflowing. This may be useful, for example, if your overflow renderer contains a Popover
+     * which you do not want to close as the list is resized.
+     *
+     * @default false
+     */
+    alwaysRenderOverflow?: boolean;
+
     /**
      * Which direction the items should collapse from: start or end of the
      * children. This also determines whether `overflowRenderer` appears before
@@ -116,16 +128,17 @@ export interface IOverflowListState<T> {
     visible: T[];
 }
 
-export class OverflowList<T> extends React.Component<IOverflowListProps<T>, IOverflowListState<T>> {
+export class OverflowList<T> extends React.Component<OverflowListProps<T>, IOverflowListState<T>> {
     public static displayName = `${DISPLAYNAME_PREFIX}.OverflowList`;
 
-    public static defaultProps: Partial<IOverflowListProps<any>> = {
+    public static defaultProps: Partial<OverflowListProps<any>> = {
+        alwaysRenderOverflow: false,
         collapseFrom: Boundary.START,
         minVisibleItems: 0,
     };
 
     public static ofType<U>() {
-        return OverflowList as new (props: IOverflowListProps<U>) => OverflowList<U>;
+        return OverflowList as new (props: OverflowListProps<U>) => OverflowList<U>;
     }
 
     public state: IOverflowListState<T> = {
@@ -144,7 +157,7 @@ export class OverflowList<T> extends React.Component<IOverflowListProps<T>, IOve
         this.repartition(false);
     }
 
-    public shouldComponentUpdate(_nextProps: IOverflowListProps<T>, nextState: IOverflowListState<T>) {
+    public shouldComponentUpdate(_nextProps: OverflowListProps<T>, nextState: IOverflowListState<T>) {
         // We want this component to always re-render, even when props haven't changed, so that
         // changes in the renderers' behavior can be reflected.
         // The following statement prevents re-rendering only in the case where the state changes
@@ -153,7 +166,7 @@ export class OverflowList<T> extends React.Component<IOverflowListProps<T>, IOve
         return !(this.state !== nextState && shallowCompareKeys(this.state, nextState));
     }
 
-    public componentDidUpdate(prevProps: IOverflowListProps<T>, prevState: IOverflowListState<T>) {
+    public componentDidUpdate(prevProps: OverflowListProps<T>, prevState: IOverflowListState<T>) {
         if (prevProps.observeParents !== this.props.observeParents) {
             console.warn(OVERFLOW_LIST_OBSERVE_PARENTS_CHANGED);
         }
@@ -163,6 +176,7 @@ export class OverflowList<T> extends React.Component<IOverflowListProps<T>, IOve
             prevProps.items !== this.props.items ||
             prevProps.minVisibleItems !== this.props.minVisibleItems ||
             prevProps.overflowRenderer !== this.props.overflowRenderer ||
+            prevProps.alwaysRenderOverflow !== this.props.alwaysRenderOverflow ||
             prevProps.visibleItemRenderer !== this.props.visibleItemRenderer
         ) {
             // reset visible state if the above props change.
@@ -212,13 +226,13 @@ export class OverflowList<T> extends React.Component<IOverflowListProps<T>, IOve
 
     private maybeRenderOverflow() {
         const { overflow } = this.state;
-        if (overflow.length === 0) {
+        if (overflow.length === 0 && !this.props.alwaysRenderOverflow) {
             return null;
         }
         return this.props.overflowRenderer(overflow);
     }
 
-    private resize = (entries: IResizeEntry[]) => {
+    private resize = (entries: ResizeEntry[]) => {
         // if any parent is growing, assume we have more room than before
         const growing = entries.some(entry => {
             const previousWidth = this.previousWidths.get(entry.target) || 0;

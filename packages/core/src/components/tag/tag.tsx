@@ -23,18 +23,21 @@ import {
     Classes,
     DISPLAYNAME_PREFIX,
     IElementRefProps,
-    IIntentProps,
-    IProps,
+    IntentProps,
+    Props,
     MaybeElement,
     Utils,
 } from "../../common";
 import { isReactNodeEmpty } from "../../common/utils";
-import { Icon, IconName } from "../icon/icon";
+import { Icon, IconName, IconSize } from "../icon/icon";
 import { Text } from "../text/text";
 
+// eslint-disable-next-line deprecation/deprecation
+export type TagProps = ITagProps;
+/** @deprecated use TagProps */
 export interface ITagProps
-    extends IProps,
-        IIntentProps,
+    extends Props,
+        IntentProps,
         // eslint-disable-next-line deprecation/deprecation
         IElementRefProps<HTMLSpanElement>,
         React.HTMLAttributes<HTMLSpanElement> {
@@ -99,7 +102,7 @@ export interface ITagProps
      * Click handler for remove button.
      * The remove button will only be rendered if this prop is defined.
      */
-    onRemove?: (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => void;
+    onRemove?: (e: React.MouseEvent<HTMLButtonElement>, tagProps: TagProps) => void;
 
     /** Name of a Blueprint UI icon (or an icon element) to render after the children. */
     rightIcon?: IconName | MaybeElement;
@@ -118,7 +121,7 @@ export interface ITagProps
 }
 
 @polyfill
-export class Tag extends AbstractPureComponent2<ITagProps> {
+export class Tag extends AbstractPureComponent2<TagProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Tag`;
 
     public render() {
@@ -163,7 +166,7 @@ export class Tag extends AbstractPureComponent2<ITagProps> {
                 onClick={this.onRemoveClick}
                 tabIndex={interactive ? tabIndex : undefined}
             >
-                <Icon icon="small-cross" iconSize={isLarge ? Icon.SIZE_LARGE : Icon.SIZE_STANDARD} />
+                <Icon icon="small-cross" iconSize={isLarge ? IconSize.LARGE : IconSize.STANDARD} />
             </button>
         ) : null;
 

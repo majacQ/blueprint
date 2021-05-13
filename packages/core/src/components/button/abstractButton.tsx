@@ -21,17 +21,20 @@ import {
     AbstractPureComponent2,
     Alignment,
     Classes,
-    IActionProps,
+    ActionProps,
     IElementRefProps,
     Keys,
     MaybeElement,
     Utils,
 } from "../../common";
-import { Icon, IconName } from "../icon/icon";
+import { Icon, IconName, IconSize } from "../icon/icon";
 import { Spinner } from "../spinner/spinner";
 
+// eslint-disable-next-line deprecation/deprecation
+export type ButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = HTMLButtonElement> = IButtonProps<E>;
+/** @deprecated use ButtonProps */
 export interface IButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = HTMLButtonElement>
-    extends IActionProps,
+    extends ActionProps,
         // eslint-disable-next-line deprecation/deprecation
         IElementRefProps<E> {
     /**
@@ -87,14 +90,17 @@ export interface IButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = 
     type?: "submit" | "reset" | "button";
 }
 
-export type IAnchorButtonProps = IButtonProps<HTMLAnchorElement>;
+/** @deprecated use AnchorButtonProps */
+export type IAnchorButtonProps = ButtonProps<HTMLAnchorElement>;
+// eslint-disable-next-line deprecation/deprecation
+export type AnchorButtonProps = IAnchorButtonProps;
 
 export interface IButtonState {
     isActive: boolean;
 }
 
 export abstract class AbstractButton<E extends HTMLButtonElement | HTMLAnchorElement> extends AbstractPureComponent2<
-    IButtonProps<E> &
+    ButtonProps<E> &
         (E extends HTMLButtonElement
             ? React.ButtonHTMLAttributes<HTMLButtonElement>
             : React.AnchorHTMLAttributes<HTMLAnchorElement>),
@@ -180,7 +186,7 @@ export abstract class AbstractButton<E extends HTMLButtonElement | HTMLAnchorEle
     protected renderChildren(): React.ReactNode {
         const { children, icon, loading, rightIcon, text } = this.props;
         return [
-            loading && <Spinner key="loading" className={Classes.BUTTON_SPINNER} size={Icon.SIZE_LARGE} />,
+            loading && <Spinner key="loading" className={Classes.BUTTON_SPINNER} size={IconSize.LARGE} />,
             <Icon key="leftIcon" icon={icon} />,
             (!Utils.isReactNodeEmpty(text) || !Utils.isReactNodeEmpty(children)) && (
                 <span key="text" className={Classes.BUTTON_TEXT}>
