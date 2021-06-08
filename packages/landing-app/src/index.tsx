@@ -15,12 +15,13 @@
  */
 
 import { FocusStyleManager } from "@blueprintjs/core";
+
 import { initializeLogo } from "./logo";
 import { initializeSVGs } from "./svgs";
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
-// tslint:disable:blueprint-classes-constants
+/* eslint-disable @blueprintjs/classes-constants */
 initializeLogo(
     document.getElementById("pt-logo") as HTMLCanvasElement,
     document.getElementById("pt-logo-background") as HTMLCanvasElement,

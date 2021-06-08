@@ -19,8 +19,8 @@ import { mount, shallow, ShallowWrapper } from "enzyme";
 import * as React from "react";
 import { SinonStub, spy, stub } from "sinon";
 
+import { Alert, Button, Classes, IAlertProps, IButtonProps, Icon, Intent, Keys } from "../../src";
 import * as Errors from "../../src/common/errors";
-import { Alert, Button, Classes, IAlertProps, IButtonProps, Icon, Intent, Keys } from "../../src/index";
 import { findInPortal } from "../utils";
 
 describe("<Alert>", () => {
@@ -202,6 +202,38 @@ describe("<Alert>", () => {
             assert.isTrue(onCancel.calledOnce);
 
             alert.unmount();
+        });
+    });
+
+    describe("load state", () => {
+        let wrapper: ShallowWrapper<IAlertProps, any>;
+        let findCancelButton: () => ShallowWrapper<IButtonProps, any>;
+        let findSubmitButton: () => ShallowWrapper<IButtonProps, any>;
+
+        beforeEach(() => {
+            wrapper = shallow(
+                <Alert
+                    icon="warning-sign"
+                    intent={Intent.PRIMARY}
+                    isOpen={true}
+                    loading={true}
+                    cancelButtonText="Cancel"
+                    confirmButtonText="Delete"
+                >
+                    <p>Are you sure you want to delete this file?</p>
+                    <p>There is no going back.</p>
+                </Alert>,
+            );
+            findSubmitButton = () => wrapper.find(Button).first();
+            findCancelButton = () => wrapper.find(Button).last();
+        });
+
+        it("Properly displays buttons when set to loading", () => {
+            assert.isTrue(findCancelButton().prop("disabled"));
+            assert.isTrue(findSubmitButton().prop("loading"));
+            wrapper.setProps({ loading: false });
+            assert.isFalse(findCancelButton().prop("disabled"));
+            assert.isFalse(findSubmitButton().prop("loading"));
         });
     });
 

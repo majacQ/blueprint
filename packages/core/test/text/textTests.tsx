@@ -18,7 +18,7 @@ import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 
-import { Classes, Text } from "../../src/index";
+import { Classes, Text } from "../../src";
 
 describe("<Text>", () => {
     it("adds the className prop", () => {
@@ -28,6 +28,15 @@ describe("<Text>", () => {
         const element = wrapper.find(`.${className}`).hostNodes();
         assert.lengthOf(element, 1, `expected to find 1 .${className}`);
         assert.strictEqual(element.text(), textContent, "content incorrect value");
+    });
+
+    it("uses given title", () => {
+        const textContent = "textContent";
+        const title = "Test title";
+        const wrapper = mount(<Text title={title}>{textContent}</Text>);
+        const element = wrapper.find("div").first();
+        const actualTitle = element.prop("title");
+        assert.strictEqual(actualTitle, title, "component title should equal title prop");
     });
 
     describe("if ellipsize true", () => {
@@ -67,17 +76,36 @@ describe("<Text>", () => {
 
             it("adds the title attribute when text overflows", () => {
                 const textContent = new Array(100).join("this will overflow ");
-                const wrapper = mount(<Text ellipsize={true}>{textContent}</Text>, { attachTo: testsContainerElement });
+                const wrapper = mount(<Text ellipsize={true}>{textContent}</Text>, {
+                    attachTo: testsContainerElement,
+                });
                 const actualTitle = wrapper.find(`.${Classes.TEXT_OVERFLOW_ELLIPSIS}`).prop("title");
                 assert.strictEqual(actualTitle, textContent, "title should equal full text content");
             });
 
             it("does not add the title attribute when text does not overflow", () => {
                 const textContent = "no overflow";
-                let wrapper = mount(<Text ellipsize={true}>{textContent}</Text>, { attachTo: testsContainerElement });
+                let wrapper = mount(<Text ellipsize={true}>{textContent}</Text>, {
+                    attachTo: testsContainerElement,
+                });
                 wrapper = wrapper.update();
                 const actualTitle = wrapper.find(`.${Classes.TEXT_OVERFLOW_ELLIPSIS}`).prop("title");
                 assert.strictEqual(actualTitle, undefined, "title should be undefined");
+            });
+
+            it("uses given title even if text overflows", () => {
+                const textContent = new Array(100).join("this will overflow ");
+                const title = "Test title";
+                const wrapper = mount(
+                    <Text ellipsize={true} title={title}>
+                        {textContent}
+                    </Text>,
+                    {
+                        attachTo: testsContainerElement,
+                    },
+                );
+                const actualTitle = wrapper.find(`.${Classes.TEXT_OVERFLOW_ELLIPSIS}`).prop("title");
+                assert.strictEqual(actualTitle, title, "component title should equal title prop");
             });
         });
     });

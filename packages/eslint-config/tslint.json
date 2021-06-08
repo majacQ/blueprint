@@ -1,0 +1,22 @@
+{
+    "defaultSeverity": "error",
+    "rules": {
+        "no-submodule-imports": {
+            "options": [
+                "core-js",
+                "react-dom",
+                "@blueprintjs/table/src",
+                "@blueprintjs/test-commons/bootstrap",
+                "tsutils",
+                "@typescript-eslint/experimental-utils"
+            ]
+        },
+        "object-literal-sort-keys": true,
+        "only-arrow-functions": {
+            "options": ["allow-declarations", "allow-named-functions"]
+        },
+        "variable-name": {
+            "options": ["allow-leading-underscore", "allow-pascal-case", "ban-keywords", "check-format"]
+        }
+    }
+}

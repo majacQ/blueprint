@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import { Utils as CoreUtils } from "@blueprintjs/core";
 import * as React from "react";
+
+import { Utils as CoreUtils } from "@blueprintjs/core";
+
 import { IFocusedCellCoordinates } from "../common/cell";
 import { Utils } from "../common/utils";
 import { IRegion, RegionCardinality, Regions } from "../regions";
-import { Draggable, ICoordinateData, IDraggableProps } from "./draggable";
+import { Draggable, IDraggableProps } from "./draggable";
+import { ICoordinateData } from "./dragTypes";
 
 export interface IReorderableProps {
     /**
@@ -55,6 +58,7 @@ export interface IReorderableProps {
 
     /**
      * An array containing the table's selection Regions.
+     *
      * @default []
      */
     selectedRegions?: IRegion[];
@@ -63,6 +67,7 @@ export interface IReorderableProps {
 export interface IDragReorderable extends IReorderableProps {
     /**
      * Whether the reordering behavior is disabled.
+     *
      * @default false
      */
     disabled?: boolean | ((event: MouseEvent) => boolean);
@@ -87,12 +92,13 @@ export interface IDragReorderable extends IReorderableProps {
     toRegion: (index1: number, index2?: number) => IRegion;
 }
 
-export class DragReorderable extends React.PureComponent<IDragReorderable, {}> {
+export class DragReorderable extends React.PureComponent<IDragReorderable> {
     public static defaultProps: Partial<IDragReorderable> = {
         selectedRegions: [],
     };
 
     private selectedRegionStartIndex: number;
+
     private selectedRegionLength: number;
 
     public render() {
@@ -188,7 +194,7 @@ export class DragReorderable extends React.PureComponent<IDragReorderable, {}> {
 
     private shouldIgnoreMouseDown(event: MouseEvent) {
         const { disabled } = this.props;
-        const isDisabled = CoreUtils.isFunction(disabled) ? CoreUtils.safeInvoke(disabled, event) : disabled;
+        const isDisabled = CoreUtils.isFunction(disabled) ? disabled?.(event) : disabled;
         return !Utils.isLeftClick(event) || isDisabled;
     }
 

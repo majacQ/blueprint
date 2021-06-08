@@ -15,9 +15,9 @@
  */
 
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent } from "../../common/abstractPureComponent";
-import * as Classes from "../../common/classes";
+import { AbstractPureComponent2, Classes } from "../../common";
 import * as Errors from "../../common/errors";
 import { DISPLAYNAME_PREFIX, IOptionProps, IProps } from "../../common/props";
 import { isElementOfType } from "../../common/utils";
@@ -36,7 +36,7 @@ export interface IRadioGroupProps extends IProps {
     inline?: boolean;
 
     /** Optional label text to display above the radio buttons. */
-    label?: string;
+    label?: React.ReactNode;
 
     /**
      * Name of the group, used to link radio buttons together in HTML.
@@ -67,7 +67,8 @@ function nextName() {
     return `${RadioGroup.displayName}-${counter++}`;
 }
 
-export class RadioGroup extends AbstractPureComponent<IRadioGroupProps, {}> {
+@polyfill
+export class RadioGroup extends AbstractPureComponent2<IRadioGroupProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.RadioGroup`;
 
     // a unique name for this group, which can be overridden by `name` prop.
@@ -100,7 +101,7 @@ export class RadioGroup extends AbstractPureComponent<IRadioGroupProps, {}> {
     }
 
     private renderOptions() {
-        return this.props.options.map(option => (
+        return this.props.options?.map(option => (
             <Radio {...this.getRadioProps(option)} key={option.value} labelElement={option.label || option.value} />
         ));
     }

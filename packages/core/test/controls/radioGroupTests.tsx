@@ -19,8 +19,8 @@ import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import * as React from "react";
 import { spy, stub } from "sinon";
 
+import { IOptionProps, Radio, RadioGroup } from "../../src";
 import { RADIOGROUP_WARN_CHILDREN_OPTIONS_MUTEX } from "../../src/common/errors";
-import { IOptionProps, Radio, RadioGroup } from "../../src/index";
 
 describe("<RadioGroup>", () => {
     const emptyHandler = () => {
@@ -77,13 +77,7 @@ describe("<RadioGroup>", () => {
         const OPTIONS = [{ value: "text" }, { value: 23 }];
         const group = mount(<RadioGroup onChange={emptyHandler} options={OPTIONS} selectedValue="b" />);
         OPTIONS.forEach(props => {
-            assert.strictEqual(
-                findInput(group, props)
-                    .parents()
-                    .first()
-                    .text(),
-                props.value.toString(),
-            );
+            assert.strictEqual(findInput(group, props).parents().first().text(), props.value.toString());
         });
     });
 

@@ -23,7 +23,7 @@ import * as sinon from "sinon";
 import {
     Button,
     IButtonProps,
-    IInputGroupProps,
+    IInputGroupProps2,
     InputGroup,
     IPopoverProps,
     MenuItem,
@@ -31,13 +31,14 @@ import {
     Position,
 } from "@blueprintjs/core";
 import { QueryList, Select } from "@blueprintjs/select";
+
+import { ITimezonePickerProps, ITimezonePickerState, TimezoneDisplayFormat, TimezonePicker } from "../src";
 import {
     getInitialTimezoneItems,
     getLocalTimezoneItem,
     getTimezoneItems,
     ITimezoneItem,
 } from "../src/components/timezone-picker/timezoneItems";
-import { ITimezonePickerProps, ITimezonePickerState, TimezoneDisplayFormat, TimezonePicker } from "../src/index";
 
 type TimezonePickerShallowWrapper = ShallowWrapper<ITimezonePickerProps, ITimezonePickerState>;
 
@@ -69,6 +70,7 @@ describe("<TimezonePicker>", () => {
         // remove isOpen from popoverProps so it's
         const timezonePicker = mount(<TimezonePicker {...DEFAULT_PROPS} popoverProps={{ usePortal: false }} />);
         timezonePicker.find(Button).simulate("click");
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.isTrue(timezonePicker.find(Popover).prop("isOpen"));
     });
 
@@ -77,6 +79,7 @@ describe("<TimezonePicker>", () => {
             <TimezonePicker {...DEFAULT_PROPS} disabled={true} popoverProps={{ usePortal: false }} />,
         );
         timezonePicker.find(Button).simulate("click");
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.isFalse(timezonePicker.find(Popover).prop("isOpen"));
     });
 
@@ -89,6 +92,7 @@ describe("<TimezonePicker>", () => {
     it("if query is not empty, shows all items", () => {
         const timezonePicker = shallow(<TimezonePicker {...DEFAULT_PROPS} />);
         timezonePicker.setState({ query: "not empty" });
+        timezonePicker.update();
         const items = timezonePicker.find(Select).prop("items");
         assert.lengthOf(items, getTimezoneItems(new Date()).length);
     });
@@ -196,7 +200,7 @@ describe("<TimezonePicker>", () => {
     });
 
     it("input can be controlled with input props", () => {
-        const inputProps: IInputGroupProps = {
+        const inputProps: IInputGroupProps2 = {
             disabled: true,
             leftIcon: "airplane",
             placeholder: "test placeholder",
@@ -204,7 +208,7 @@ describe("<TimezonePicker>", () => {
         const timezonePicker = shallow(<TimezonePicker {...DEFAULT_PROPS} inputProps={inputProps} />);
         const inputGroup = findInputGroup(timezonePicker);
         for (const key of Object.keys(inputProps)) {
-            assert.deepEqual(inputGroup.prop(key), inputProps[key as keyof IInputGroupProps]);
+            assert.deepEqual(inputGroup.prop(key), inputProps[key as keyof IInputGroupProps2]);
         }
     });
 
@@ -237,28 +241,19 @@ describe("<TimezonePicker>", () => {
     }
 
     function findQueryList(timezonePicker: TimezonePickerShallowWrapper) {
-        return findSelect(timezonePicker)
-            .shallow()
-            .find(QueryList.ofType<ITimezoneItem>());
+        return findSelect(timezonePicker).shallow().find(QueryList.ofType<ITimezoneItem>());
     }
 
     function findPopover(timezonePicker: TimezonePickerShallowWrapper) {
-        return findQueryList(timezonePicker)
-            .shallow()
-            .find(Popover);
+        /* eslint-disable-next-line deprecation/deprecation */
+        return findQueryList(timezonePicker).shallow().find(Popover);
     }
 
     function findInputGroup(timezonePicker: TimezonePickerShallowWrapper) {
-        return findQueryList(timezonePicker)
-            .shallow()
-            .find(InputGroup);
+        return findQueryList(timezonePicker).shallow().find(InputGroup);
     }
 
     function clickFirstMenuItem(timezonePicker: TimezonePickerShallowWrapper): void {
-        findQueryList(timezonePicker)
-            .shallow()
-            .find(MenuItem)
-            .first()
-            .simulate("click");
+        findQueryList(timezonePicker).shallow().find(MenuItem).first().simulate("click");
     }
 });

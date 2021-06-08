@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { InputGroup, Popover } from "@blueprintjs/core";
 import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { InputGroup, Popover } from "@blueprintjs/core";
+
 import { IFilm, renderFilm, TOP_100_FILMS } from "../../docs-app/src/examples/select-examples/films";
-import { ISelectProps, ISelectState, Select } from "../src/index";
+import { IItemRendererProps, ISelectProps, ISelectState, Select } from "../src";
 import { selectComponentSuite } from "./selectComponentSuite";
 
 describe("<Select>", () => {
@@ -32,8 +33,8 @@ describe("<Select>", () => {
         query: "",
     };
     let handlers: {
-        itemPredicate: sinon.SinonSpy;
-        itemRenderer: sinon.SinonSpy;
+        itemPredicate: sinon.SinonSpy<[string, IFilm], boolean>;
+        itemRenderer: sinon.SinonSpy<[IFilm, IItemRendererProps], JSX.Element | null>;
         onItemSelect: sinon.SinonSpy;
     };
 
@@ -52,17 +53,20 @@ describe("<Select>", () => {
     it("renders a Popover around children that contains InputGroup and items", () => {
         const wrapper = select();
         assert.lengthOf(wrapper.find(InputGroup), 1, "should render InputGroup");
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.lengthOf(wrapper.find(Popover), 1, "should render Popover");
     });
 
     it("filterable=false hides InputGroup", () => {
         const wrapper = select({ filterable: false });
         assert.lengthOf(wrapper.find(InputGroup), 0, "should not render InputGroup");
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.lengthOf(wrapper.find(Popover), 1, "should render Popover");
     });
 
     it("disabled=true disables Popover", () => {
         const wrapper = select({ disabled: true });
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.strictEqual(wrapper.find(Popover).prop("disabled"), true);
     });
 
@@ -89,6 +93,7 @@ describe("<Select>", () => {
         const modifiers = {}; // our own instance
         const wrapper = select({ popoverProps: { onOpening, modifiers } });
         wrapper.find("article").simulate("click");
+        /* eslint-disable-next-line deprecation/deprecation */
         assert.strictEqual(wrapper.find(Popover).prop("modifiers"), modifiers);
         assert.isTrue(onOpening.calledOnce);
     });

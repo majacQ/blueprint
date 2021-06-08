@@ -14,18 +14,15 @@
  */
 
 module.exports = {
-    extends: [
-        "tslint:latest",
-        "tslint-react",
-        "tslint-config-prettier",
-        "tslint-plugin-prettier",
-        "./blueprint-rules",
-    ],
+    extends: ["tslint:latest", "tslint-react"],
 
     defaultSeverity: "error",
 
     rules: {
-        "ban": {
+        "array-type": {
+            options: ["array-simple"],
+        },
+        ban: {
             options: [
                 ["_", "extend", "use object spread: { ...a, ...b }"],
                 ["_", "isNull", "use plain JS: == null"],
@@ -40,15 +37,16 @@ module.exports = {
         "linebreak-style": {
             options: ["LF"],
         },
+        "member-access": true,
         "no-console": {
             options: ["log", "time", "timeEnd", "trace"],
         },
         "no-default-export": true,
         "no-implicit-dependencies": {
-            options: ["dev"]
+            options: ["dev"],
         },
         "no-invalid-this": {
-            options: ["check-function-in-method"]
+            options: ["check-function-in-method"],
         },
         "no-submodule-imports": {
             options: [
@@ -57,32 +55,23 @@ module.exports = {
                 "react-dom",
                 "@blueprintjs/table/src",
                 "@blueprintjs/test-commons/bootstrap",
-                "react-day-picker/types",
-                "tsutils"
-            ]
+                "tsutils",
+                "@typescript-eslint/experimental-utils",
+            ],
         },
         "no-unnecessary-callback-wrapper": true,
         "no-unnecessary-initializer": true,
-        "prefer-conditional-expression": false,
-        "prettier": {
+        "object-literal-sort-keys": true,
+        "ordered-imports": {
             options: {
-                "printWidth": 120,
-                "tabWidth": 4,
-                "trailingComma": "all"
-            }
+                "import-sources-order": "case-insensitive",
+                "module-source-path": "full",
+                "named-imports-order": "case-insensitive",
+            },
         },
+        "prefer-conditional-expression": false,
         "variable-name": {
-            options: [
-                "allow-leading-underscore",
-                "allow-pascal-case",
-                "ban-keywords",
-                "check-format",
-            ]
-        }
+            options: ["allow-leading-underscore", "allow-pascal-case", "ban-keywords", "check-format"],
+        },
     },
-    jsRules: {
-        "no-console": false,
-        "object-literal-sort-keys": false,
-        "trailing-comma": false,
-    }
 };

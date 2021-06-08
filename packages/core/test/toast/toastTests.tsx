@@ -19,7 +19,7 @@ import { mount, shallow } from "enzyme";
 import * as React from "react";
 import { SinonSpy, spy } from "sinon";
 
-import { AnchorButton, Button, Toast } from "../../src/index";
+import { AnchorButton, Button, Toast } from "../../src";
 
 describe("<Toast>", () => {
     it("renders only dismiss button by default", () => {
@@ -80,7 +80,9 @@ describe("<Toast>", () => {
         });
 
         it("updating with timeout={0} cancels timeout", done => {
-            mount(<Toast message="Hello" onDismiss={handleDismiss} timeout={20} />).setProps({ timeout: 0 });
+            mount(<Toast message="Hello" onDismiss={handleDismiss} timeout={20} />).setProps({
+                timeout: 0,
+            });
             setTimeout(() => {
                 assert.isTrue(handleDismiss.notCalled, "onDismiss was called");
                 done();
@@ -88,7 +90,9 @@ describe("<Toast>", () => {
         });
 
         it("updating timeout={0} with timeout={X} starts timeout", done => {
-            mount(<Toast message="Hello" onDismiss={handleDismiss} timeout={0} />).setProps({ timeout: 20 });
+            mount(<Toast message="Hello" onDismiss={handleDismiss} timeout={0} />).setProps({
+                timeout: 20,
+            });
             setTimeout(() => {
                 assert.isTrue(handleDismiss.calledOnce, "onDismiss not called once");
                 assert.isTrue(handleDismiss.firstCall.args[0], "onDismiss not called with `true`");

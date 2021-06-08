@@ -27,13 +27,14 @@ export interface ILoadableContentProps {
 
     /**
      * If true, show a skeleton of random width (25-75% cell width) when rendering the loading state.
+     *
      * @default false
      */
     variableLength?: boolean;
 }
 
 // This class expects a single, non-string child.
-export class LoadableContent extends React.PureComponent<ILoadableContentProps, {}> {
+export class LoadableContent extends React.PureComponent<ILoadableContentProps> {
     private style: React.CSSProperties;
 
     public constructor(props: ILoadableContentProps) {
@@ -41,9 +42,9 @@ export class LoadableContent extends React.PureComponent<ILoadableContentProps, 
         this.style = this.calculateStyle(props.variableLength);
     }
 
-    public componentWillReceiveProps(nextProps: ILoadableContentProps) {
-        if ((!this.props.loading && nextProps.loading) || this.props.variableLength !== nextProps.variableLength) {
-            this.style = this.calculateStyle(nextProps.variableLength);
+    public componentDidUpdate(prevProps: ILoadableContentProps) {
+        if ((!prevProps.loading && this.props.loading) || prevProps.variableLength !== this.props.variableLength) {
+            this.style = this.calculateStyle(this.props.variableLength);
         }
     }
 

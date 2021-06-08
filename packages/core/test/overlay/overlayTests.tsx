@@ -20,8 +20,9 @@ import * as React from "react";
 import { spy } from "sinon";
 
 import { dispatchMouseEvent } from "@blueprintjs/test-commons";
+
+import { Classes, IOverlayProps, Overlay, Portal, Utils } from "../../src";
 import * as Keys from "../../src/common/keys";
-import { Classes, IOverlayProps, Overlay, Portal, Utils } from "../../src/index";
 import { findInPortal } from "../utils";
 
 const BACKDROP_SELECTOR = `.${Classes.OVERLAY_BACKDROP}`;
@@ -36,6 +37,7 @@ For shallow mounts, be sure to call `shallowWrapper.unmount()` after the asserti
 */
 describe("<Overlay>", () => {
     let wrapper: ReactWrapper<IOverlayProps, any>;
+    let isMounted = false;
     const testsContainerElement = document.createElement("div");
     document.documentElement.appendChild(testsContainerElement);
 
@@ -45,15 +47,16 @@ describe("<Overlay>", () => {
      */
     function mountWrapper(content: JSX.Element) {
         wrapper = mount(content, { attachTo: testsContainerElement });
+        isMounted = true;
         return wrapper;
     }
 
     afterEach(() => {
-        // clean up wrapper after each test, if it was used
-        if (wrapper != null) {
-            wrapper.unmount();
-            wrapper.detach();
-            wrapper = null;
+        if (isMounted) {
+            // clean up wrapper after each test, if it was used
+            wrapper?.unmount();
+            wrapper?.detach();
+            isMounted = false;
         }
     });
 
@@ -273,8 +276,8 @@ describe("<Overlay>", () => {
         });
 
         it("returns focus to overlay if enforceFocus=true", done => {
-            let buttonRef: HTMLElement;
-            let inputRef: HTMLElement;
+            let buttonRef: HTMLElement | null = null;
+            let inputRef: HTMLElement | null = null;
             mountWrapper(
                 <div>
                     <button ref={ref => (buttonRef = ref)} />
@@ -284,10 +287,13 @@ describe("<Overlay>", () => {
                 </div>,
             );
             assert.strictEqual(document.activeElement, inputRef);
-            buttonRef.focus();
+            buttonRef!.focus();
             assertFocus(() => {
                 assert.notStrictEqual(document.activeElement, buttonRef);
-                assert.isTrue(document.activeElement.classList.contains(Classes.OVERLAY_BACKDROP), "focus on backdrop");
+                assert.isTrue(
+                    document.activeElement?.classList.contains(Classes.OVERLAY_BACKDROP),
+                    "focus on backdrop",
+                );
             }, done);
         });
 
@@ -330,9 +336,9 @@ describe("<Overlay>", () => {
         });
 
         it("does not return focus to overlay if enforceFocus=false", done => {
-            let buttonRef: HTMLElement;
+            let buttonRef: HTMLElement | null;
             const focusBtnAndAssert = () => {
-                buttonRef.focus();
+                buttonRef?.focus();
                 assert.strictEqual(buttonRef, document.activeElement);
                 done();
             };
@@ -348,13 +354,13 @@ describe("<Overlay>", () => {
         });
 
         it("doesn't focus overlay if focus is already inside overlay", done => {
-            let textarea: HTMLTextAreaElement;
+            let textarea: HTMLTextAreaElement | null;
             mountWrapper(
                 <Overlay isOpen={true} usePortal={true}>
                     <textarea ref={ref => (textarea = ref)} />
                 </Overlay>,
             );
-            textarea.focus();
+            textarea!.focus();
             assertFocus("textarea", done);
         });
 
@@ -368,7 +374,27 @@ describe("<Overlay>", () => {
             assertFocus("button", done);
         });
 
-        function assertFocus(selector: string | (() => void), done: MochaDone) {
+        it("does not crash while trying to return focus to overlay if user clicks outside the document", () => {
+            mountWrapper(
+                <Overlay enforceFocus={true} canOutsideClickClose={false} isOpen={true} usePortal={false}>
+                    {createOverlayContents()}
+                </Overlay>,
+            );
+
+            // this is a fairly custom / nonstandard event dispatch, trying to simulate what happens in some browsers when a user clicks
+            // on the browser toolbar (outside the document), but a focus event is still dispatched to document
+            // see https://github.com/palantir/blueprint/issues/3928
+            const event = new FocusEvent("focus");
+            Object.defineProperty(event, "target", { value: window });
+
+            try {
+                document.dispatchEvent(event);
+            } catch (e) {
+                assert.fail("threw uncaught error");
+            }
+        });
+
+        function assertFocus(selector: string | (() => void), done: Mocha.Done) {
             // the behavior being tested relies on requestAnimationFrame.
             // setTimeout for a few frames later to let things settle (to reduce flakes).
             setTimeout(() => {
@@ -439,7 +465,7 @@ describe("<Overlay>", () => {
             );
         }
 
-        function assertBodyScrollingDisabled(disabled: boolean, done: MochaDone) {
+        function assertBodyScrollingDisabled(disabled: boolean, done: Mocha.Done) {
             // wait for the DOM to settle before checking body classes
             setTimeout(() => {
                 const hasClass = document.body.classList.contains(Classes.OVERLAY_OPEN);

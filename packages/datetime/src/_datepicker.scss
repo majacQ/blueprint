@@ -10,26 +10,29 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
 
 @mixin calendar-day() {
   display: table-cell;
-  width: $datepicker-day-size;
   height: $datepicker-day-size;
-  vertical-align: middle;
-  text-align: center;
   line-height: 1;
+  text-align: center;
+  vertical-align: middle;
+  width: $datepicker-day-size;
 }
 
 // react-day-picker does not conform to our naming scheme
-// stylelint-disable selector-class-pattern
+
+/* stylelint-disable selector-class-pattern */
+
 .#{$ns}-datepicker {
-  position: relative;
-  border-radius: $pt-border-radius;
   background: $datepicker-background-color;
+  border-radius: $pt-border-radius;
+  display: flex;
   padding: $datepicker-padding;
+  position: relative;
   user-select: none;
 
   .DayPicker {
     display: inline-block;
-    position: relative;
     min-width: $datepicker-min-width;
+    position: relative;
     vertical-align: top;
 
     &:focus {
@@ -37,11 +40,16 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
     }
   }
 
+  .#{$ns}-datepicker-day-wrapper {
+    border-radius: $pt-border-radius;
+    padding: 7px;
+  }
+
   .DayPicker-Month {
-    display: inline-table;
-    margin: 0 $datepicker-padding $datepicker-padding;
     border-collapse: collapse;
     border-spacing: 0;
+    display: inline-table;
+    margin: 0 $datepicker-padding $datepicker-padding;
     user-select: none;
 
     // create space between months (selector matches all but first month)
@@ -64,8 +72,8 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
 
   .DayPicker-Weekday {
     @include calendar-day();
-    padding-top: $datepicker-padding;
     font-weight: 600;
+    padding-top: $datepicker-padding;
 
     // normalize.css adds an underline to abbr[title] elements, remove it here
     abbr[title] {
@@ -97,6 +105,12 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
       color: $pt-text-color-disabled;
     }
 
+    &.DayPicker-Day--isToday {
+      .#{$ns}-datepicker-day-wrapper {
+        border: 1px solid $pt-divider-black;
+      }
+    }
+
     &:hover,
     &:focus {
       background: $datepicker-day-background-color-hover;
@@ -108,8 +122,8 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
     }
 
     &.DayPicker-Day--selected {
-      border-radius: $pt-border-radius;
       background-color: $blue3;
+      border-radius: $pt-border-radius;
       color: $white;
 
       &:hover {
@@ -120,20 +134,20 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
     // putting it last so it overrides equally specific selectors above.
     &.DayPicker-Day--disabled {
       background: none;
-      cursor: not-allowed;
       color: $pt-text-color-disabled;
+      cursor: not-allowed;
     }
   }
 }
 
 .#{$ns}-datepicker-navbar {
-  display: flex;
   align-items: center;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  display: flex;
   height: $pt-button-height;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 
   > .DayPicker-NavButton--prev {
     margin-right: auto;
@@ -151,9 +165,9 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
 
   // HTMLSelect overrides for a narrower appearance
   select {
-    padding-right: $pt-icon-size-standard;
-    padding-left: $datepicker-padding;
     font-weight: 600;
+    padding-left: $datepicker-padding;
+    padding-right: $pt-icon-size-standard;
 
     + .#{$ns}-icon {
       right: 2px;
@@ -175,8 +189,8 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
 }
 
 .#{$ns}-datepicker-caption-measure {
-  padding-left: $datepicker-padding;
   font-weight: 600;
+  padding-left: $datepicker-padding;
 }
 
 .#{$ns}-datepicker-footer {
@@ -194,6 +208,12 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
   .DayPicker-Day {
     &.DayPicker-Day--outside {
       color: $pt-dark-text-color-disabled;
+    }
+
+    &.DayPicker-Day--isToday {
+      .#{$ns}-datepicker-day-wrapper {
+        border: 1px solid $pt-dark-divider-white;
+      }
     }
 
     &:hover,
@@ -223,4 +243,10 @@ $header-margin: ($header-height - $pt-input-height) / 2 !default;
   .#{$ns}-datepicker-footer {
     border-top-color: $pt-dark-divider-black;
   }
+}
+
+.#{$ns}-datepicker-timepicker-wrapper {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
 }

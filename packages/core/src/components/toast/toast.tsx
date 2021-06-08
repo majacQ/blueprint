@@ -16,11 +16,10 @@
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent } from "../../common/abstractPureComponent";
-import * as Classes from "../../common/classes";
+import { AbstractPureComponent2, Classes } from "../../common";
 import { DISPLAYNAME_PREFIX, IActionProps, IIntentProps, ILinkProps, IProps, MaybeElement } from "../../common/props";
-import { safeInvoke } from "../../common/utils";
 import { ButtonGroup } from "../button/buttonGroup";
 import { AnchorButton, Button } from "../button/buttons";
 import { Icon, IconName } from "../icon/icon";
@@ -49,12 +48,14 @@ export interface IToastProps extends IProps, IIntentProps {
     /**
      * Milliseconds to wait before automatically dismissing toast.
      * Providing a value less than or equal to 0 will disable the timeout (this is discouraged).
+     *
      * @default 5000
      */
     timeout?: number;
 }
 
-export class Toast extends AbstractPureComponent<IToastProps, {}> {
+@polyfill
+export class Toast extends AbstractPureComponent2<IToastProps> {
     public static defaultProps: IToastProps = {
         className: "",
         message: "",
@@ -90,7 +91,7 @@ export class Toast extends AbstractPureComponent<IToastProps, {}> {
 
     public componentDidUpdate(prevProps: IToastProps) {
         if (prevProps.timeout !== this.props.timeout) {
-            if (this.props.timeout > 0) {
+            if (this.props.timeout! > 0) {
                 this.startTimeout();
             } else {
                 this.clearTimeouts();
@@ -112,7 +113,7 @@ export class Toast extends AbstractPureComponent<IToastProps, {}> {
     }
 
     private handleActionClick = (e: React.MouseEvent<HTMLElement>) => {
-        safeInvoke(this.props.action.onClick, e);
+        this.props.action?.onClick?.(e);
         this.triggerDismiss(false);
     };
 
@@ -120,12 +121,12 @@ export class Toast extends AbstractPureComponent<IToastProps, {}> {
 
     private triggerDismiss(didTimeoutExpire: boolean) {
         this.clearTimeouts();
-        safeInvoke(this.props.onDismiss, didTimeoutExpire);
+        this.props.onDismiss?.(didTimeoutExpire);
     }
 
     private startTimeout = () => {
         this.clearTimeouts();
-        if (this.props.timeout > 0) {
+        if (this.props.timeout! > 0) {
             this.setTimeout(() => this.triggerDismiss(true), this.props.timeout);
         }
     };

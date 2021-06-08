@@ -21,6 +21,7 @@ import * as ReactDOM from "react-dom";
 import * as sinon from "sinon";
 
 import { expectPropValidationError } from "@blueprintjs/test-commons";
+
 import { Classes, IMultiSliderProps, MultiSlider } from "../../src";
 import { Handle } from "../../src/components/slider/handle";
 import { mouseUpHorizontal, simulateMovement } from "./sliderTestUtils";
@@ -52,13 +53,21 @@ describe("<MultiSlider>", () => {
     describe("handles", () => {
         it("handle values are automatically sorted", () => {
             const slider = renderSlider({ values: [5, 10, 0], onRelease });
-            slider
-                .find(Handle)
-                .first()
-                .simulate("mousedown", { clientX: 0 });
+            slider.find(Handle).first().simulate("mousedown", { clientX: 0 });
             mouseUpHorizontal(0);
             assert.equal(onRelease.callCount, 1);
             assert.deepEqual(onRelease.firstCall.args[0], [0, 5, 10]);
+        });
+
+        it("propagates className to the handles", () => {
+            const slider = mount(
+                <MultiSlider>
+                    <MultiSlider.Handle value={3} className="testClass" />
+                    <MultiSlider.Handle value={5} />
+                </MultiSlider>,
+                { attachTo: testsContainerElement },
+            );
+            assert.lengthOf(slider.find("span.testClass"), 1);
         });
 
         it("moving mouse on the first handle updates the first value", () => {
@@ -66,23 +75,57 @@ describe("<MultiSlider>", () => {
             simulateMovement(slider, { dragSize: STEP_SIZE, dragTimes: 4, handleIndex: 0 });
             // called 3 times for the move to 1, 2, 3, and 4
             assert.equal(onChange.callCount, 4);
-            assert.deepEqual(onChange.args.map(arg => arg[0]), [[1, 5, 10], [2, 5, 10], [3, 5, 10], [4, 5, 10]]);
+            assert.deepEqual(
+                onChange.args.map(arg => arg[0]),
+                [
+                    [1, 5, 10],
+                    [2, 5, 10],
+                    [3, 5, 10],
+                    [4, 5, 10],
+                ],
+            );
         });
 
         it("moving mouse on the middle handle updates the middle value", () => {
             const slider = renderSlider({ onChange });
-            simulateMovement(slider, { dragSize: STEP_SIZE, dragTimes: 4, from: STEP_SIZE * 5, handleIndex: 1 });
+            simulateMovement(slider, {
+                dragSize: STEP_SIZE,
+                dragTimes: 4,
+                from: STEP_SIZE * 5,
+                handleIndex: 1,
+            });
             // called 3 times for the move to 6, 7, 8, and 9
             assert.equal(onChange.callCount, 4);
-            assert.deepEqual(onChange.args.map(arg => arg[0]), [[0, 6, 10], [0, 7, 10], [0, 8, 10], [0, 9, 10]]);
+            assert.deepEqual(
+                onChange.args.map(arg => arg[0]),
+                [
+                    [0, 6, 10],
+                    [0, 7, 10],
+                    [0, 8, 10],
+                    [0, 9, 10],
+                ],
+            );
         });
 
         it("moving mouse on the last handle updates the last value", () => {
             const slider = renderSlider({ onChange });
-            simulateMovement(slider, { dragSize: -STEP_SIZE, dragTimes: 4, from: STEP_SIZE * 10, handleIndex: 2 });
+            simulateMovement(slider, {
+                dragSize: -STEP_SIZE,
+                dragTimes: 4,
+                from: STEP_SIZE * 10,
+                handleIndex: 2,
+            });
             // called 3 times for the move to 9, 8, 7, and 6
             assert.equal(onChange.callCount, 4);
-            assert.deepEqual(onChange.args.map(arg => arg[0]), [[0, 5, 9], [0, 5, 8], [0, 5, 7], [0, 5, 6]]);
+            assert.deepEqual(
+                onChange.args.map(arg => arg[0]),
+                [
+                    [0, 5, 9],
+                    [0, 5, 8],
+                    [0, 5, 7],
+                    [0, 5, 6],
+                ],
+            );
         });
 
         it("releasing mouse on a track value closer to the first handle moves the first handle", () => {
@@ -129,20 +172,32 @@ describe("<MultiSlider>", () => {
         it("values outside of bounds are clamped", () => {
             const slider = renderSlider({ values: [-1, 5, 12] });
             slider.find(`.${Classes.SLIDER_PROGRESS}`).forEach(progress => {
-                const { left, right } = progress.prop("style");
+                const { left, right } = progress.prop("style")!;
                 // CSS properties are percentage strings, but parsing will ignore trailing "%".
                 // percentages should be in 0-100% range.
-                assert.isAtLeast(parseFloat(left.toString()), 0);
-                assert.isAtMost(parseFloat(right.toString()), 100);
+                assert.isAtLeast(parseFloat(left!.toString()), 0);
+                assert.isAtMost(parseFloat(right!.toString()), 100);
             });
         });
     });
 
     describe("labels", () => {
+        it("renders label with labelStepSize fallback of 1 when not provided", () => {
+            // [0 1 2 3 4 5]
+            const wrapper = renderSlider({ min: 0, max: 5 });
+            assertLabelCount(wrapper, 6);
+        });
+
         it("renders label for value and for each labelStepSize", () => {
             // [0  10  20  30  40  50]
             const wrapper = renderSlider({ min: 0, max: 50, labelStepSize: 10 });
             assertLabelCount(wrapper, 6);
+        });
+
+        it("renders labels provided in labelValues prop", () => {
+            const labelValues = [0, 30, 50, 60];
+            const wrapper = renderSlider({ min: 0, max: 50, labelValues });
+            assertLabelCount(wrapper, 4);
         });
 
         it("renders all labels even when floating point approx would cause the last one to be skipped", () => {
@@ -155,6 +210,12 @@ describe("<MultiSlider>", () => {
             const labelRenderer = (val: number) => val + "#";
             const wrapper = renderSlider({ min: 0, max: 50, labelStepSize: 10, labelRenderer });
             assert.strictEqual(wrapper.find(`.${Classes.SLIDER}-axis`).text(), "0#10#20#30#40#50#");
+        });
+
+        it("renders result of labelRenderer() in each label with labelValues", () => {
+            const labelRenderer = (val: number) => val + "#";
+            const wrapper = renderSlider({ min: 0, max: 50, labelValues: [20, 40, 50], labelRenderer });
+            assert.strictEqual(wrapper.find(`.${Classes.SLIDER}-axis`).text(), "20#40#50#");
         });
 
         it("default labelRenderer() fixes decimal places to labelPrecision", () => {
@@ -198,7 +259,7 @@ describe("<MultiSlider>", () => {
 
         it("intentAfter beats intentBefore", () => {
             const intents = slider.find(`.${Classes.SLIDER_PROGRESS}`).map(segment => {
-                const match = segment.prop("className").match(/-intent-(\w+)/) || [];
+                const match = segment.prop("className")?.match(/-intent-(\w+)/) || [];
                 return match[1];
             });
             // last segment has default intent
@@ -209,14 +270,57 @@ describe("<MultiSlider>", () => {
             slider.setProps({ showTrackFill: false });
             slider.find(`.${Classes.SLIDER_PROGRESS}`).map(segment => {
                 // segments rendered but they nave no intent
-                assert.isNull(segment.prop("className").match(/-intent-(\w+)/));
+                assert.isNull(segment.prop("className")?.match(/-intent-(\w+)/));
             });
+        });
+
+        it("track section positioning is correct", () => {
+            slider = mount(
+                <MultiSlider max={1}>
+                    <MultiSlider.Handle value={1.2e-7} intentBefore="warning" intentAfter="warning" />
+                    <MultiSlider.Handle value={0.2} intentBefore="danger" intentAfter="success" />
+                </MultiSlider>,
+            );
+            const locations = slider.find(`.${Classes.SLIDER_PROGRESS}`).map(segment => {
+                const match = segment.prop("style")!;
+                return [match.left, match.right];
+            });
+            assert.deepEqual(locations, [
+                ["0.00%", "100.00%"],
+                ["0.00%", "80.00%"],
+                ["20.00%", "0.00%"],
+            ]);
+        });
+
+        it("trackStyleBefore and trackStyleAfter work as intended", () => {
+            slider = mount(
+                <MultiSlider>
+                    <MultiSlider.Handle
+                        value={1}
+                        trackStyleBefore={{ background: "red" }}
+                        trackStyleAfter={{ background: "yellow" }}
+                    />
+                    <MultiSlider.Handle
+                        value={2}
+                        trackStyleBefore={{ background: "blue" }}
+                        trackStyleAfter={{ background: "purple" }}
+                    />
+                </MultiSlider>,
+            );
+
+            const trackBackgrounds = slider
+                .find(`.${Classes.SLIDER_PROGRESS}`)
+                .map(segment => segment.prop("style")?.background);
+
+            assert.equal(trackBackgrounds[0], "red");
+            assert.equal(trackBackgrounds[1], "yellow");
+            assert.equal(trackBackgrounds[2], "purple");
         });
     });
 
     describe("validation", () => {
         it("throws an error if a child is not a slider handle", () => {
-            expectPropValidationError(MultiSlider, { children: <span>Bad</span> as any });
+            expectPropValidationError(MultiSlider, { children: (<span>Bad</span>) as any });
         });
 
         it("throws error if stepSize <= 0", () => {

@@ -30,10 +30,14 @@ export const DATEPICKER_DAY = "DayPicker-Day";
 export const DATEPICKER_DAY_DISABLED = `${DATEPICKER_DAY}--disabled`;
 export const DATEPICKER_DAY_OUTSIDE = `${DATEPICKER_DAY}--outside`;
 export const DATEPICKER_DAY_SELECTED = `${DATEPICKER_DAY}--selected`;
+export const DATEPICKER_DAY_IS_TODAY = `${DATEPICKER_DAY}--isToday`;
+export const DATEPICKER_DAY_WRAPPER = `${DATEPICKER}-day-wrapper`;
 export const DATEPICKER_FOOTER = `${DATEPICKER}-footer`;
 export const DATEPICKER_MONTH_SELECT = `${DATEPICKER}-month-select`;
 export const DATEPICKER_YEAR_SELECT = `${DATEPICKER}-year-select`;
 export const DATEPICKER_NAVBAR = `${DATEPICKER}-navbar`;
+export const DATEPICKER_NAVBUTTON = `DayPicker-NavButton`;
+export const DATEPICKER_TIMEPICKER_WRAPPER = `${DATEPICKER}-timepicker-wrapper`;
 
 export const DATERANGEPICKER = `${NS}-daterangepicker`;
 export const DATERANGEPICKER_CONTIGUOUS = `${DATERANGEPICKER}-contiguous`;

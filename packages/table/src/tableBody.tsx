@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import { Utils as CoreUtils } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
+
+import { AbstractComponent2, Utils as CoreUtils } from "@blueprintjs/core";
 
 import { ICellCoordinates } from "./common/cell";
 import * as Classes from "./common/classes";
 import { ContextMenuTargetWrapper } from "./common/contextMenuTargetWrapper";
 import { RenderMode } from "./common/renderMode";
-import { ICoordinateData } from "./interactions/draggable";
+import { ICoordinateData } from "./interactions/dragTypes";
 import { IContextMenuRenderer, MenuContext } from "./interactions/menus";
 import { DragSelectable, ISelectableProps } from "./interactions/selectable";
 import { ILocator } from "./locator";
@@ -55,7 +56,7 @@ export interface ITableBodyProps extends ISelectableProps, ITableBodyCellsProps 
 
 const DEEP_COMPARE_KEYS: Array<keyof ITableBodyProps> = ["selectedRegions"];
 
-export class TableBody extends React.Component<ITableBodyProps, {}> {
+export class TableBody extends AbstractComponent2<ITableBodyProps> {
     public static defaultProps = {
         loading: false,
         renderMode: RenderMode.BATCH,

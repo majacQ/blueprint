@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import { IProps, Utils as CoreUtils } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
+
+import { IProps, Utils as CoreUtils } from "@blueprintjs/core";
+
 import * as Classes from "../common/classes";
 import { QuadrantType } from "../quadrants/tableQuadrant";
 import { IRegion, Regions } from "../regions";
@@ -39,7 +41,7 @@ export interface IRegionLayerProps extends IProps {
 // don't include "regions" or "regionStyles" in here, because they can't be shallowly compared
 const UPDATE_PROPS_KEYS = ["className"] as Array<keyof IRegionLayerProps>;
 
-export class RegionLayer extends React.Component<IRegionLayerProps, {}> {
+export class RegionLayer extends React.Component<IRegionLayerProps> {
     public shouldComponentUpdate(nextProps: IRegionLayerProps) {
         // shallowly comparable props like "className" tend not to change in the default table
         // implementation, so do that check last with hope that we return earlier and avoid it

@@ -16,13 +16,14 @@
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import * as Classes from "../../common/classes";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
+import { AbstractPureComponent2, Classes } from "../../common";
+import { DISPLAYNAME_PREFIX, HTMLDivProps, IProps } from "../../common/props";
 
 export type TabId = string | number;
 
-export interface ITabProps extends IProps {
+export interface ITabProps extends IProps, Omit<HTMLDivProps, "id" | "title" | "onClick"> {
     /**
      * Content of tab title, rendered in a list above the active panel.
      * Can also be set via the `title` prop.
@@ -31,6 +32,7 @@ export interface ITabProps extends IProps {
 
     /**
      * Whether the tab is disabled.
+     *
      * @default false
      */
     disabled?: boolean;
@@ -59,10 +61,10 @@ export interface ITabProps extends IProps {
     title?: React.ReactNode;
 }
 
-export class Tab extends React.PureComponent<ITabProps, {}> {
-    public static defaultProps: ITabProps = {
+@polyfill
+export class Tab extends AbstractPureComponent2<ITabProps> {
+    public static defaultProps: Partial<ITabProps> = {
         disabled: false,
-        id: undefined,
     };
 
     public static displayName = `${DISPLAYNAME_PREFIX}.Tab`;

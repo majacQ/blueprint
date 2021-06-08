@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-import { Tag } from "@blueprintjs/core";
 import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { Classes as CoreClasses, Keys, Tag } from "@blueprintjs/core";
+import { dispatchTestKeyboardEventWithCode } from "@blueprintjs/test-commons";
+
 // this is an awkward import across the monorepo, but we'd rather not introduce a cyclical dependency or create another package
 import { IFilm, renderFilm, TOP_100_FILMS } from "../../docs-app/src/examples/select-examples/films";
-import { IMultiSelectProps, IMultiSelectState, MultiSelect } from "../src/index";
+import { IItemRendererProps, IMultiSelectProps, IMultiSelectState, MultiSelect } from "../src";
 import { selectComponentSuite } from "./selectComponentSuite";
 
 describe("<MultiSelect>", () => {
@@ -35,8 +37,8 @@ describe("<MultiSelect>", () => {
         tagRenderer: renderTag,
     };
     let handlers: {
-        itemPredicate: sinon.SinonSpy;
-        itemRenderer: sinon.SinonSpy;
+        itemPredicate: sinon.SinonSpy<[string, IFilm], boolean>;
+        itemRenderer: sinon.SinonSpy<[IFilm, IItemRendererProps], JSX.Element | null>;
         onItemSelect: sinon.SinonSpy;
     };
 
@@ -74,8 +76,36 @@ describe("<MultiSelect>", () => {
         assert.equal(wrapper.find(Tag).find("strong").length, 1);
     });
 
+    // N.B. this is not good behavior, we shouldn't support this since the component is controlled.
+    // we keep it around for backcompat but expect that nobody actually uses the component this way.
     it("selectedItems is optional", () => {
         assert.doesNotThrow(() => multiselect({ selectedItems: undefined }));
+    });
+
+    it("only triggers QueryList key up events when focus is on TagInput's <input>", () => {
+        const itemSelectSpy = sinon.spy();
+        const wrapper = multiselect({
+            onItemSelect: itemSelectSpy,
+            selectedItems: [TOP_100_FILMS[1]],
+        });
+
+        const firstTagRemoveButton = wrapper.find(`.${CoreClasses.TAG_REMOVE}`).at(0).getDOMNode();
+        dispatchTestKeyboardEventWithCode(firstTagRemoveButton, "keyup", "Enter", Keys.ENTER);
+
+        // checks for the bug in https://github.com/palantir/blueprint/issues/3674
+        // where the first item in the dropdown list would get selected upon hitting Enter inside
+        // a TAG_REMOVE button
+        assert.isFalse(itemSelectSpy.calledWith(TOP_100_FILMS[0]));
+    });
+
+    it("triggers onRemove", () => {
+        const handleRemove = sinon.spy();
+        const wrapper = multiselect({
+            onRemove: handleRemove,
+            selectedItems: [TOP_100_FILMS[2], TOP_100_FILMS[3], TOP_100_FILMS[4]],
+        });
+        wrapper.find(`.${CoreClasses.TAG_REMOVE}`).at(1).simulate("click");
+        assert.isTrue(handleRemove.calledOnceWithExactly(TOP_100_FILMS[3], 1));
     });
 
     function multiselect(props: Partial<IMultiSelectProps<IFilm>> = {}, query?: string) {

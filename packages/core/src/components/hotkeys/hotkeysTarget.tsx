@@ -18,9 +18,9 @@ import * as React from "react";
 
 import { IConstructor } from "../../common/constructor";
 import { HOTKEYS_WARN_DECORATOR_NEEDS_REACT_ELEMENT, HOTKEYS_WARN_DECORATOR_NO_METHOD } from "../../common/errors";
-import { getDisplayName, isFunction, safeInvoke } from "../../common/utils";
-import { IHotkeysProps } from "./hotkeys";
+import { getDisplayName, isFunction } from "../../common/utils";
 import { HotkeyScope, HotkeysEvents } from "./hotkeysEvents";
+import { IHotkeysProps } from "./hotkeysTypes";
 
 export interface IHotkeysTargetComponent extends React.Component {
     /** Components decorated with the `@HotkeysTarget` decorator must implement React's component `render` function. */
@@ -30,9 +30,10 @@ export interface IHotkeysTargetComponent extends React.Component {
      * Components decorated with the `@HotkeysTarget` decorator must implement
      * this method, and it must return a `Hotkeys` React element.
      */
-    renderHotkeys(): React.ReactElement<IHotkeysProps>;
+    renderHotkeys: () => React.ReactElement<IHotkeysProps>;
 }
 
+/** @deprecated use `useHotkeys` hook or `<HotkeysTarget2>` component */
 export function HotkeysTarget<T extends IConstructor<IHotkeysTargetComponent>>(WrappedComponent: T) {
     if (!isFunction(WrappedComponent.prototype.renderHotkeys)) {
         console.warn(HOTKEYS_WARN_DECORATOR_NO_METHOD);
@@ -42,18 +43,10 @@ export function HotkeysTarget<T extends IConstructor<IHotkeysTargetComponent>>(W
         public static displayName = `HotkeysTarget(${getDisplayName(WrappedComponent)})`;
 
         /** @internal */
-        public globalHotkeysEvents?: HotkeysEvents;
+        public globalHotkeysEvents: HotkeysEvents = new HotkeysEvents(HotkeyScope.GLOBAL);
 
         /** @internal */
-        public localHotkeysEvents?: HotkeysEvents;
-
-        public componentWillMount() {
-            if (super.componentWillMount != null) {
-                super.componentWillMount();
-            }
-            this.localHotkeysEvents = new HotkeysEvents(HotkeyScope.LOCAL);
-            this.globalHotkeysEvents = new HotkeysEvents(HotkeyScope.GLOBAL);
-        }
+        public localHotkeysEvents: HotkeysEvents = new HotkeysEvents(HotkeyScope.LOCAL);
 
         public componentDidMount() {
             if (super.componentDidMount != null) {
@@ -66,9 +59,7 @@ export function HotkeysTarget<T extends IConstructor<IHotkeysTargetComponent>>(W
         }
 
         public componentWillUnmount() {
-            if (super.componentWillUnmount != null) {
-                super.componentWillUnmount();
-            }
+            super.componentWillUnmount?.();
             document.removeEventListener("keydown", this.globalHotkeysEvents.handleKeyDown);
             document.removeEventListener("keyup", this.globalHotkeysEvents.handleKeyUp);
 
@@ -91,23 +82,32 @@ export function HotkeysTarget<T extends IConstructor<IHotkeysTargetComponent>>(W
 
             if (isFunction(this.renderHotkeys)) {
                 const hotkeys = this.renderHotkeys();
-                this.localHotkeysEvents.setHotkeys(hotkeys.props);
-                this.globalHotkeysEvents.setHotkeys(hotkeys.props);
+                if (this.localHotkeysEvents) {
+                    this.localHotkeysEvents.setHotkeys(hotkeys.props);
+                }
+                if (this.globalHotkeysEvents) {
+                    this.globalHotkeysEvents.setHotkeys(hotkeys.props);
+                }
 
                 if (this.localHotkeysEvents.count() > 0) {
                     const tabIndex = hotkeys.props.tabIndex === undefined ? 0 : hotkeys.props.tabIndex;
 
-                    const { keyDown: existingKeyDown, keyUp: existingKeyUp } = element.props;
-                    const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+                    const { onKeyDown: existingKeyDown, onKeyUp: existingKeyUp } = element.props;
+
+                    const handleKeyDownWrapper = (e: React.KeyboardEvent<HTMLElement>) => {
                         this.localHotkeysEvents.handleKeyDown(e.nativeEvent as KeyboardEvent);
-                        safeInvoke(existingKeyDown, e);
+                        existingKeyDown?.(e);
                     };
 
-                    const onKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
+                    const handleKeyUpWrapper = (e: React.KeyboardEvent<HTMLElement>) => {
                         this.localHotkeysEvents.handleKeyUp(e.nativeEvent as KeyboardEvent);
-                        safeInvoke(existingKeyUp, e);
+                        existingKeyUp?.(e);
                     };
-                    return React.cloneElement(element, { tabIndex, onKeyDown, onKeyUp });
+                    return React.cloneElement(element, {
+                        onKeyDown: handleKeyDownWrapper,
+                        onKeyUp: handleKeyUpWrapper,
+                        tabIndex,
+                    });
                 }
             }
             return element;

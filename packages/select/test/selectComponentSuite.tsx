@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { HTMLInputProps, Keys } from "@blueprintjs/core";
 import { assert } from "chai";
 import { ReactWrapper } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
+
+import { HTMLInputProps, Keys, MenuItem } from "@blueprintjs/core";
+
 import {
     areFilmsEqual,
     createFilm,
@@ -27,11 +29,12 @@ import {
     renderFilm,
     TOP_100_FILMS,
 } from "../../docs-app/src/examples/select-examples/films";
-import { IListItemsProps } from "../src/index";
+import { IListItemsProps } from "../src";
 
 export function selectComponentSuite<P extends IListItemsProps<IFilm>, S>(
     render: (props: IListItemsProps<IFilm>) => ReactWrapper<P, S>,
-    findInput: (wrapper: ReactWrapper<P, S>) => ReactWrapper<HTMLInputProps> = wrapper => wrapper.find("input"),
+    findInput: (wrapper: ReactWrapper<P, S>) => ReactWrapper<HTMLInputProps> = wrapper =>
+        wrapper.find("input") as ReactWrapper<HTMLInputProps>,
     findItems: (wrapper: ReactWrapper<P, S>) => ReactWrapper = wrapper => wrapper.find("a"),
 ) {
     const testProps = {
@@ -56,11 +59,10 @@ export function selectComponentSuite<P extends IListItemsProps<IFilm>, S>(
         it("itemRenderer is called for each child", () => {
             const wrapper = render(testProps);
             // each item is rendered once
-            assert.equal(testProps.itemRenderer.callCount, 15);
-            // only filtered items re-rendered
-            testProps.itemRenderer.resetHistory();
+            assert.equal(wrapper.find(MenuItem).length, 15, "re-render");
             wrapper.setProps({ query: "1999" });
-            assert.equal(testProps.itemRenderer.callCount, 2, "re-render");
+            wrapper.update();
+            assert.equal(wrapper.find(MenuItem).length, 2, "re-render");
         });
 
         it("renders noResults when given empty list", () => {
@@ -69,24 +71,29 @@ export function selectComponentSuite<P extends IListItemsProps<IFilm>, S>(
         });
 
         it("renders noResults when filtering returns empty list", () => {
-            const wrapper = render({ ...testProps, noResults: <address />, query: "non-existent film name" });
+            const wrapper = render({
+                ...testProps,
+                noResults: <address />,
+                query: "non-existent film name",
+            });
             assert.lengthOf(wrapper.find("address"), 1, "should find noResults");
         });
 
         it("clicking item invokes onItemSelect and changes active item", () => {
             const wrapper = render(testProps);
-            findItems(wrapper)
-                .at(4)
-                .simulate("click");
+            findItems(wrapper).at(4).simulate("click");
             assert.strictEqual(testProps.onItemSelect.args[0][0].rank, 6, "onItemSelect");
             assert.strictEqual(testProps.onActiveItemChange.args[0][0].rank, 6, "onActiveItemChange");
         });
 
         it("clicking item resets state when resetOnSelect=true", () => {
-            const wrapper = render({ ...testProps, query: "19", resetOnSelect: true, resetOnQuery: false });
-            findItems(wrapper)
-                .at(3)
-                .simulate("click");
+            const wrapper = render({
+                ...testProps,
+                query: "19",
+                resetOnQuery: false,
+                resetOnSelect: true,
+            });
+            findItems(wrapper).at(3).simulate("click");
             const ranks = testProps.onActiveItemChange.args.map(args => (args[0] as IFilm).rank);
             // clicking changes to 5, then resets to 1
             assert.deepEqual(ranks, [5, 1]);
@@ -140,6 +147,7 @@ export function selectComponentSuite<P extends IListItemsProps<IFilm>, S>(
 
         it("enter invokes onItemSelect with active item", () => {
             const wrapper = render(testProps);
+            findInput(wrapper).simulate("keydown", { keyCode: Keys.ENTER });
             findInput(wrapper).simulate("keyup", { keyCode: Keys.ENTER });
             const activeItem = testProps.onActiveItemChange.lastCall.args[0];
             assert.equal(testProps.onItemSelect.lastCall.args[0], activeItem);

@@ -20,9 +20,9 @@ import * as React from "react";
 import * as sinon from "sinon";
 
 import { HTMLSelect } from "@blueprintjs/core";
-import { ClassNames } from "react-day-picker/types/common";
+
+import { Classes, IDatePickerLocaleUtils } from "../src";
 import { DatePickerCaption, IDatePickerCaptionProps } from "../src/datePickerCaption";
-import { Classes, IDatePickerLocaleUtils } from "../src/index";
 
 describe("<DatePickerCaption>", () => {
     const LOCALE_UTILS: IDatePickerLocaleUtils = {
@@ -68,8 +68,14 @@ describe("<DatePickerCaption>", () => {
         const minDate = new Date(2014, 11, 20);
         const maxDate = new Date(2015, 0, 12);
         const { month, year } = renderDatePickerCaption({ maxDate, minDate });
-        assert.deepEqual(month.find("option").map(mo => mo.text()), ["January"]);
-        assert.deepEqual(year.find("option").map(yr => yr.text()), ["2014", "2015"]);
+        assert.deepEqual(
+            month.find("option").map(mo => mo.text()),
+            ["January"],
+        );
+        assert.deepEqual(
+            year.find("option").map(yr => yr.text()),
+            ["2014", "2015"],
+        );
     });
 
     it("renders localized month labels when supplied", () => {
@@ -89,7 +95,10 @@ describe("<DatePickerCaption>", () => {
         ] as any;
         const { month } = renderDatePickerCaption({ months });
         const options = month.find("option");
-        assert.deepEqual(options.map(mo => mo.text()), months);
+        assert.deepEqual(
+            options.map(mo => mo.text()),
+            months,
+        );
     });
 
     it("out-of-bounds year adds disabled year option", () => {
@@ -98,19 +107,21 @@ describe("<DatePickerCaption>", () => {
         const maxDate = new Date(2016, 11, 31);
         const { year } = renderDatePickerCaption({ date, maxDate, minDate });
         const options = year.find("option");
-        assert.deepEqual(options.map(yr => yr.text()), ["2015", "2016", "2017"]);
+        assert.deepEqual(
+            options.map(yr => yr.text()),
+            ["2015", "2016", "2017"],
+        );
         assert.isTrue(options.last().prop("disabled"), "2017 is not disabled");
     });
 
     function renderDatePickerCaption(props?: Partial<IDatePickerCaptionProps>) {
         const wrapper = mount(
             <DatePickerCaption
-                // tslint:disable-next-line:no-object-literal-type-assertion
-                classNames={{} as ClassNames}
+                classNames={{} as any}
                 date={new Date(2015, 0)}
                 locale="en"
                 localeUtils={LOCALE_UTILS}
-                maxDate={new Date(2020, 0)}
+                maxDate={new Date(2030, 0)}
                 minDate={new Date(2010, 0)}
                 months={undefined}
                 {...props}
@@ -118,15 +129,9 @@ describe("<DatePickerCaption>", () => {
         );
 
         return {
-            month: wrapper
-                .find(HTMLSelect)
-                .filter({ className: Classes.DATEPICKER_MONTH_SELECT })
-                .find("select"),
+            month: wrapper.find(HTMLSelect).filter({ className: Classes.DATEPICKER_MONTH_SELECT }).find("select"),
             root: wrapper,
-            year: wrapper
-                .find(HTMLSelect)
-                .filter({ className: Classes.DATEPICKER_YEAR_SELECT })
-                .find("select"),
+            year: wrapper.find(HTMLSelect).filter({ className: Classes.DATEPICKER_YEAR_SELECT }).find("select"),
         };
     }
 });

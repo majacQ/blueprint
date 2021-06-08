@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { assert } from "chai";
 import { mount, ReactWrapper, shallow } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
-// this is an awkward import across the monorepo, but we'd rather not introduce a cyclical dependency or create another package
+import { Menu } from "@blueprintjs/core";
 import { IQueryListProps } from "@blueprintjs/select";
+
 import { IFilm, renderFilm, TOP_100_FILMS } from "../../docs-app/src/examples/select-examples/films";
 import {
     IQueryListRendererProps,
@@ -28,7 +30,9 @@ import {
     ItemListRenderer,
     ItemPredicate,
     QueryList,
-} from "../src/index";
+} from "../src";
+
+// this is an awkward import across the monorepo, but we'd rather not introduce a cyclical dependency or create another package
 
 type FilmQueryListWrapper = ReactWrapper<IQueryListProps<IFilm>, IQueryListState<IFilm>>;
 
@@ -47,6 +51,15 @@ describe("<QueryList>", () => {
         testProps.onActiveItemChange.resetHistory();
         testProps.onItemSelect.resetHistory();
         testProps.renderer.resetHistory();
+    });
+
+    describe("items", () => {
+        it("handles controlled changes to the whole items list", () => {
+            const wrapper = shallow(<FilmQueryList {...testProps} />);
+            const newItems = TOP_100_FILMS.slice(0, 1);
+            wrapper.setProps({ items: newItems });
+            assert.deepEqual(wrapper.state("filteredItems"), newItems);
+        });
     });
 
     describe("itemListRenderer", () => {
@@ -184,6 +197,20 @@ describe("<QueryList>", () => {
             const filmQueryList: FilmQueryListWrapper = mount(<FilmQueryList {...props} />);
             assert(filmQueryList.state().activeItem === null);
         });
+
+        it("createNewItemPosition affects position of create new item", () => {
+            const props: IQueryListProps<IFilm> = {
+                ...testProps,
+                createNewItemFromQuery: sinon.spy(),
+                createNewItemRenderer: () => <article />,
+                items: TOP_100_FILMS.slice(0, 4),
+                query: "the",
+            };
+            const filmQueryList: FilmQueryListWrapper = mount(<FilmQueryList {...props} />);
+            assert(filmQueryList.find(Menu).children().children().last().is("article"));
+            filmQueryList.setProps({ createNewItemPosition: "first" });
+            assert(filmQueryList.find(Menu).children().children().first().is("article"));
+        });
     });
 
     describe("scrolling", () => {
@@ -283,7 +310,11 @@ describe("<QueryList>", () => {
 
             const { filmQueryList, handlePaste } = mountForPasteTest({
                 // Must pass these two props to enable the "Create item" option.
-                createNewItemFromQuery: query => ({ title: query, rank: createdRank, year: createdYear }),
+                createNewItemFromQuery: query => ({
+                    rank: createdRank,
+                    title: query,
+                    year: createdYear,
+                }),
                 createNewItemRenderer: () => <div>Create item</div>,
             });
 
@@ -305,5 +336,77 @@ describe("<QueryList>", () => {
             assert.deepEqual(filmQueryList.state().activeItem, item2);
             assert.deepEqual(filmQueryList.state().query, "");
         });
+    });
+
+    describe("query", () => {
+        it("trims leading and trailing whitespace when creating new items", () => {
+            let triggerInputQueryChange: ((e: any) => void) | undefined;
+            const createNewItemFromQuerySpy = sinon.spy();
+            const createNewItemRendererSpy = sinon.spy();
+            // we must supply our own renderer so that we can hook into IQueryListRendererProps#handleQueryChange
+            const renderer = sinon.spy((props: IQueryListRendererProps<IFilm>) => {
+                triggerInputQueryChange = props.handleQueryChange;
+                return <div>{props.itemList}</div>;
+            });
+            shallow(
+                <FilmQueryList
+                    {...testProps}
+                    renderer={renderer}
+                    createNewItemFromQuery={createNewItemFromQuerySpy}
+                    createNewItemRenderer={createNewItemRendererSpy}
+                />,
+            );
+
+            const untrimmedQuery = " foo ";
+            const trimmedQuery = untrimmedQuery.trim();
+
+            assert.isDefined(triggerInputQueryChange, "query list should render with input change callbacks");
+            triggerInputQueryChange!({ target: { value: untrimmedQuery } });
+            assert.isTrue(createNewItemFromQuerySpy.calledWith(trimmedQuery));
+            assert.isTrue(createNewItemRendererSpy.calledWith(trimmedQuery));
+        });
+
+        it("resets the query after creating new item if resetOnSelect=true", () => {
+            const onQueryChangeSpy = runResetOnSelectTest(true);
+            assert.isTrue(onQueryChangeSpy.calledWith(""));
+        });
+
+        it("does not reset the query after creating new item if resetOnSelect=false", () => {
+            const onQueryChangeSpy = runResetOnSelectTest(false);
+            assert.isTrue(onQueryChangeSpy.notCalled);
+        });
+
+        function runResetOnSelectTest(resetOnSelect: boolean): sinon.SinonSpy {
+            let triggerItemCreate: ((e: any) => void) | undefined;
+            const onQueryChangeSpy = sinon.spy();
+            // supply a custom renderer so we can hook into handleClick and invoke it ourselves later
+            const createNewItemRenderer = sinon.spy(
+                (_query: string, _active: boolean, handleClick: React.MouseEventHandler<HTMLElement>) => {
+                    triggerItemCreate = handleClick;
+                    return <div />;
+                },
+            );
+            const queryList = shallow(
+                <FilmQueryList
+                    {...testProps}
+                    // Must return something in order for item creation to work.
+                    // tslint:disable-next-line jsx-no-lambda
+                    createNewItemFromQuery={() => ({ title: "irrelevant", rank: 0, year: 0 })}
+                    createNewItemRenderer={createNewItemRenderer}
+                    onQueryChange={onQueryChangeSpy}
+                    resetOnSelect={resetOnSelect}
+                />,
+            );
+
+            // Change the query to something non-empty so we can ensure it wasn't cleared.
+            // Ignore this change in the spy.
+            (queryList.instance() as QueryList<IFilm>).setQuery("some query");
+            onQueryChangeSpy.resetHistory();
+
+            assert.isDefined(triggerItemCreate, "query list should pass click handler to createNewItemRenderer");
+            triggerItemCreate!({});
+
+            return onQueryChangeSpy;
+        }
     });
 });

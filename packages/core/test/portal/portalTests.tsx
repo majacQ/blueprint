@@ -21,13 +21,10 @@ import * as React from "react";
 import { Classes, IPortalProps, Portal } from "../../src";
 
 describe("<Portal>", () => {
-    let portal: ReactWrapper<IPortalProps, {}>;
+    let portal: ReactWrapper<IPortalProps>;
 
     afterEach(() => {
-        if (portal != null) {
-            portal.unmount();
-            portal = null;
-        }
+        portal?.unmount();
     });
 
     it("attaches contents to document.body", () => {
@@ -86,7 +83,7 @@ describe("<Portal>", () => {
         );
 
         const portalElement = document.querySelector(`.${CLASS_TO_TEST.replace(" ", ".")}`);
-        assert.isTrue(portalElement.classList.contains(Classes.PORTAL));
+        assert.isTrue(portalElement?.classList.contains(Classes.PORTAL));
     });
 
     it("children mount before onChildrenMount invoked", done => {

@@ -19,9 +19,9 @@ import { mount } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { Classes, Slider } from "../../src";
 import { ARROW_UP } from "../../src/common/keys";
 import { Handle } from "../../src/components/slider/handle";
-import { Classes, Slider } from "../../src/index";
 import { simulateMovement } from "./sliderTestUtils";
 
 const STEP_SIZE = 20;
@@ -53,15 +53,22 @@ describe("<Slider>", () => {
         assert.equal(tracks.getDOMNode().getBoundingClientRect().width, STEP_SIZE * 3);
     });
 
-    it("renders result of labelRenderer() in each label", () => {
-        const labelRenderer = (val: number) => val + "#";
-        const wrapper = renderSlider(<Slider min={0} max={50} labelStepSize={10} labelRenderer={labelRenderer} />);
+    it("renders result of labelRenderer() in each label and differently in handle", () => {
+        const labelRenderer = (val: number, opts?: { isHandleTooltip: boolean }) =>
+            val + (opts?.isHandleTooltip ? "!" : "#");
+        const wrapper = renderSlider(
+            <Slider min={0} max={50} value={10} labelStepSize={10} labelRenderer={labelRenderer} />,
+        );
         assert.strictEqual(wrapper.find(`.${Classes.SLIDER}-axis`).text(), "0#10#20#30#40#50#");
+        assert.strictEqual(wrapper.find(`.${Classes.SLIDER_HANDLE}`).find(`.${Classes.SLIDER_LABEL}`).text(), "10!");
     });
 
     it("moving mouse calls onChange with nearest value", () => {
         const changeSpy = sinon.spy();
-        simulateMovement(renderSlider(<Slider onChange={changeSpy} />), { dragTimes: 4, dragSize: STEP_SIZE });
+        simulateMovement(renderSlider(<Slider onChange={changeSpy} />), {
+            dragSize: STEP_SIZE,
+            dragTimes: 4,
+        });
         // called 4 times, for the move to 1, 2, 3, and 4
         assert.equal(changeSpy.callCount, 4, "call count");
         assert.deepEqual(changeSpy.args, [[1], [2], [3], [4]]);
@@ -69,7 +76,10 @@ describe("<Slider>", () => {
 
     it("releasing mouse calls onRelease with nearest value", () => {
         const releaseSpy = sinon.spy();
-        simulateMovement(renderSlider(<Slider onRelease={releaseSpy} />), { dragTimes: 1, dragSize: STEP_SIZE });
+        simulateMovement(renderSlider(<Slider onRelease={releaseSpy} />), {
+            dragSize: STEP_SIZE,
+            dragTimes: 1,
+        });
         assert.isTrue(releaseSpy.calledOnce, "onRelease not called exactly once");
         assert.equal(releaseSpy.args[0][0], 1);
     });

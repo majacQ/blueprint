@@ -19,8 +19,8 @@ import { mount, ReactWrapper, shallow } from "enzyme";
 import * as React from "react";
 import { spy } from "sinon";
 
+import { EditableText } from "../../src";
 import * as Keys from "../../src/common/keys";
-import { EditableText } from "../../src/index";
 
 describe("<EditableText>", () => {
     it("renders value", () => {
@@ -38,6 +38,13 @@ describe("<EditableText>", () => {
     it("cannot be edited when disabled", () => {
         const editable = shallow(<EditableText disabled={true} isEditing={true} />);
         assert.isFalse(editable.state("isEditing"));
+    });
+
+    it("allows resetting controlled value to undefined or null", () => {
+        const editable = shallow(<EditableText isEditing={false} placeholder="placeholder" value="alphabet" />);
+        assert.strictEqual(editable.text(), "alphabet");
+        editable.setProps({ value: null });
+        assert.strictEqual(editable.text(), "placeholder");
     });
 
     describe("when editing", () => {
@@ -190,7 +197,9 @@ describe("<EditableText>", () => {
 
         it("the full input box is highlighted when selectAllOnFocus is true", () => {
             const attachTo = document.createElement("div");
-            mount(<EditableText isEditing={true} selectAllOnFocus={true} value="alphabet" />, { attachTo });
+            mount(<EditableText isEditing={true} selectAllOnFocus={true} value="alphabet" />, {
+                attachTo,
+            });
             const input = attachTo.querySelector("input") as HTMLInputElement;
             assert.strictEqual(input.selectionStart, 0);
             assert.strictEqual(input.selectionEnd, 8);
@@ -287,11 +296,8 @@ describe("<EditableText>", () => {
             preventDefault?(): void;
         }
 
-        function simulateHelper(wrapper: ReactWrapper<any, {}>, value: string, e: IFakeKeyboardEvent) {
-            wrapper
-                .find("textarea")
-                .simulate("change", { target: { value } })
-                .simulate("keydown", e);
+        function simulateHelper(wrapper: ReactWrapper<any>, value: string, e: IFakeKeyboardEvent) {
+            wrapper.find("textarea").simulate("change", { target: { value } }).simulate("keydown", e);
         }
     });
 });

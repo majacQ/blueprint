@@ -16,9 +16,9 @@
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent } from "../../common/abstractPureComponent";
-import * as Classes from "../../common/classes";
+import { AbstractPureComponent2, Classes } from "../../common";
 import * as Errors from "../../common/errors";
 import { DISPLAYNAME_PREFIX, IProps, MaybeElement } from "../../common/props";
 import { Button } from "../button/buttons";
@@ -35,6 +35,7 @@ export interface IDialogProps extends IOverlayableProps, IBackdropProps, IProps 
 
     /**
      * Dialog always has a backdrop so this prop is excluded from the public API.
+     *
      * @internal
      */
     hasBackdrop?: boolean;
@@ -49,12 +50,14 @@ export interface IDialogProps extends IOverlayableProps, IBackdropProps, IProps 
     /**
      * Whether to show the close button in the dialog's header.
      * Note that the header will only be rendered if `title` is provided.
+     *
      * @default true
      */
     isCloseButtonShown?: boolean;
 
     /**
      * CSS styles to apply to the dialog.
+     *
      * @default {}
      */
     style?: React.CSSProperties;
@@ -72,7 +75,8 @@ export interface IDialogProps extends IOverlayableProps, IBackdropProps, IProps 
     transitionName?: string;
 }
 
-export class Dialog extends AbstractPureComponent<IDialogProps, {}> {
+@polyfill
+export class Dialog extends AbstractPureComponent2<IDialogProps> {
     public static defaultProps: IDialogProps = {
         canOutsideClickClose: true,
         isOpen: false,

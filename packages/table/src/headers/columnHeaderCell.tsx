@@ -16,9 +16,10 @@
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
 import {
-    AbstractPureComponent,
+    AbstractPureComponent2,
     Icon,
     IconName,
     IProps,
@@ -30,6 +31,7 @@ import {
 import * as Classes from "../common/classes";
 import { columnInteractionBarContextTypes, IColumnInteractionBarContextTypes } from "../common/context";
 import { LoadableContent } from "../common/loadableContent";
+import { CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT } from "../common/utils";
 import { HeaderCell, IHeaderCellProps } from "./headerCell";
 
 export interface IColumnNameProps {
@@ -67,6 +69,7 @@ export interface IColumnHeaderCellProps extends IHeaderCellProps, IColumnNamePro
 
     /**
      * The icon name or element for the header's menu button.
+     *
      * @default "chevron-down"
      */
     menuIcon?: IconName | JSX.Element;
@@ -80,15 +83,14 @@ export function HorizontalCellDivider(): JSX.Element {
     return <div className={Classes.TABLE_HORIZONTAL_CELL_DIVIDER} />;
 }
 
-export class ColumnHeaderCell extends AbstractPureComponent<IColumnHeaderCellProps, IColumnHeaderCellState> {
+@polyfill
+export class ColumnHeaderCell extends AbstractPureComponent2<IColumnHeaderCellProps, IColumnHeaderCellState> {
     public static defaultProps: IColumnHeaderCellProps = {
         isActive: false,
         menuIcon: "chevron-down",
     };
 
-    public static contextTypes: React.ValidationMap<
-        IColumnInteractionBarContextTypes
-    > = columnInteractionBarContextTypes;
+    public static contextTypes: React.ValidationMap<IColumnInteractionBarContextTypes> = columnInteractionBarContextTypes;
 
     /**
      * This method determines if a `MouseEvent` was triggered on a target that
@@ -107,6 +109,7 @@ export class ColumnHeaderCell extends AbstractPureComponent<IColumnHeaderCellPro
     }
 
     public context: IColumnInteractionBarContextTypes;
+
     public state = {
         isActive: false,
     };
@@ -194,13 +197,14 @@ export class ColumnHeaderCell extends AbstractPureComponent<IColumnHeaderCellPro
             return undefined;
         }
 
-        const classes = classNames(Classes.TABLE_TH_MENU_CONTAINER, {
+        const classes = classNames(Classes.TABLE_TH_MENU_CONTAINER, CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT, {
             [Classes.TABLE_TH_MENU_OPEN]: this.state.isActive,
         });
 
         return (
             <div className={classes}>
                 <div className={Classes.TABLE_TH_MENU_CONTAINER_BACKGROUND} />
+                {/* eslint-disable-next-line deprecation/deprecation */}
                 <Popover
                     content={menuRenderer(index)}
                     position={Position.BOTTOM}
@@ -210,11 +214,13 @@ export class ColumnHeaderCell extends AbstractPureComponent<IColumnHeaderCellPro
                     onClosing={this.handlePopoverClosing}
                 >
                     <Icon icon={menuIcon} />
+                    {/* eslint-disable-next-line deprecation/deprecation */}
                 </Popover>
             </div>
         );
     }
 
     private handlePopoverOpened = () => this.setState({ isActive: true });
+
     private handlePopoverClosing = () => this.setState({ isActive: false });
 }

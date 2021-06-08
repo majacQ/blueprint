@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+import { IPageData } from "@documentalist/client";
 import * as React from "react";
 
 import { Classes } from "@blueprintjs/core";
-import { IPageData } from "@documentalist/client";
+
 import { ITagRendererMap } from "../tags";
 import { renderBlock } from "./block";
 
@@ -27,7 +28,7 @@ export interface IPageProps {
     tagRenderers: ITagRendererMap;
 }
 
-export const Page: React.SFC<IPageProps> = ({ page, renderActions, tagRenderers }) => {
+export const Page: React.FunctionComponent<IPageProps> = ({ page, renderActions, tagRenderers }) => {
     // apply running text styles to blocks in pages (but not on blocks in examples)
     const pageContents = renderBlock(page, tagRenderers, Classes.TEXT_LARGE);
     return (

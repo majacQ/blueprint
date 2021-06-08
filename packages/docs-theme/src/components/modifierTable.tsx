@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Classes, HTMLTable } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
+
+import { Classes, HTMLTable } from "@blueprintjs/core";
 
 export interface IModifierTableProps {
     /** Message to display when children is empty. */
@@ -24,15 +25,23 @@ export interface IModifierTableProps {
 
     /** Title of the first column, describing the type of each row in the table. */
     title: string;
+
+    /** Title of the second column */
+    descriptionTitle?: string;
 }
 
-export const ModifierTable: React.SFC<IModifierTableProps> = ({ children, emptyMessage, title }) => (
+export const ModifierTable: React.FunctionComponent<IModifierTableProps> = ({
+    children,
+    descriptionTitle = "Description",
+    emptyMessage,
+    title,
+}) => (
     <div className={classNames("docs-modifiers-table", Classes.RUNNING_TEXT)}>
         <HTMLTable>
             <thead>
                 <tr>
                     <th>{title}</th>
-                    <th>Description</th>
+                    <th>{descriptionTitle}</th>
                 </tr>
             </thead>
             <tbody>{isEmpty(children) ? renderEmptyState(emptyMessage) : children}</tbody>

@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import { AbstractPureComponent, Boundary, DISPLAYNAME_PREFIX, Divider, IProps, Utils } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
-import DayPicker from "react-day-picker";
-import { DayModifiers } from "react-day-picker/types/common";
-import { CaptionElementProps, DayPickerProps, NavbarElementProps } from "react-day-picker/types/props";
+import DayPicker, { CaptionElementProps, DayModifiers, DayPickerProps, NavbarElementProps } from "react-day-picker";
+import { polyfill } from "react-lifecycles-compat";
+
+import { AbstractPureComponent2, Boundary, DISPLAYNAME_PREFIX, Divider, IProps } from "@blueprintjs/core";
 
 import * as DateClasses from "./common/classes";
+import { DateRange } from "./common/dateRange";
 import * as DateUtils from "./common/dateUtils";
-import DateRange = DateUtils.DateRange;
-
 import * as Errors from "./common/errors";
 import { MonthAndYear } from "./common/monthAndYear";
 import { DatePickerCaption } from "./datePickerCaption";
@@ -42,13 +41,12 @@ import { DateRangeSelectionStrategy } from "./dateRangeSelectionStrategy";
 import { IDateRangeShortcut, Shortcuts } from "./shortcuts";
 import { TimePicker } from "./timePicker";
 
-export { IDateRangeShortcut };
-
 export interface IDateRangePickerProps extends IDatePickerBaseProps, IProps {
     /**
      * Whether the start and end dates of the range can be the same day.
      * If `true`, clicking a selected date will create a one-day range.
      * If `false`, clicking a selected date will clear the selection.
+     *
      * @default false
      */
     allowSingleDayRange?: boolean;
@@ -64,18 +62,10 @@ export interface IDateRangePickerProps extends IDatePickerBaseProps, IProps {
     /**
      * Whether displayed months in the calendar are contiguous.
      * If false, each side of the calendar can move independently to non-contiguous months.
+     *
      * @default true
      */
     contiguousCalendarMonths?: boolean;
-    /**
-     * Props to pass to ReactDayPicker. See API documentation
-     * [here](http://react-day-picker.js.org/api/DayPicker).
-     *
-     * The following props are managed by the component and cannot be configured:
-     * `canChangeMonth`, `captionElement`, `numberOfMonths`, `fromMonth` (use
-     * `minDate`), `month` (use `initialMonth`), `toMonth` (use `maxDate`).
-     */
-    dayPickerProps?: DayPickerProps;
 
     /**
      * Initial `DateRange` the calendar will display as selected.
@@ -99,16 +89,29 @@ export interface IDateRangePickerProps extends IDatePickerBaseProps, IProps {
     onHoverChange?: (hoveredDates: DateRange, hoveredDay: Date, hoveredBoundary: Boundary) => void;
 
     /**
+     * Called when the `shortcuts` props is enabled and the user changes the shortcut.
+     */
+    onShortcutChange?: (shortcut: IDateRangeShortcut, index: number) => void;
+
+    /**
      * Whether shortcuts to quickly select a range of dates are displayed or not.
      * If `true`, preset shortcuts will be displayed.
      * If `false`, no shortcuts will be displayed.
      * If an array is provided, the custom shortcuts will be displayed.
+     *
      * @default true
      */
     shortcuts?: boolean | IDateRangeShortcut[];
 
     /**
+     * The currently selected shortcut.
+     * If this prop is provided, the component acts in a controlled manner.
+     */
+    selectedShortcutIndex?: number;
+
+    /**
      * Whether to show only a single month calendar.
+     *
      * @default false
      */
     singleMonthOnly?: boolean;
@@ -127,9 +130,11 @@ export interface IDateRangePickerState {
     rightView?: MonthAndYear;
     value?: DateRange;
     time?: DateRange;
+    selectedShortcutIndex?: number;
 }
 
-export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps, IDateRangePickerState> {
+@polyfill
+export class DateRangePicker extends AbstractPureComponent2<IDateRangePickerProps, IDateRangePickerState> {
     public static defaultProps: IDateRangePickerProps = {
         allowSingleDayRange: false,
         contiguousCalendarMonths: true,
@@ -207,7 +212,15 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
             !props.contiguousCalendarMonths && rightDate != null && !DateUtils.areSameMonth(initialMonth, rightDate)
                 ? MonthAndYear.fromDate(rightDate)
                 : leftView.getNextMonth();
-        this.state = { leftView, rightView, value, hoverValue: [null, null], time };
+        this.state = {
+            hoverValue: [null, null],
+            leftView,
+            rightView,
+            selectedShortcutIndex:
+                this.props.selectedShortcutIndex !== undefined ? this.props.selectedShortcutIndex : -1,
+            time,
+            value,
+        };
     }
 
     public render() {
@@ -231,20 +244,24 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         );
     }
 
-    public componentWillReceiveProps(nextProps: IDateRangePickerProps) {
-        super.componentWillReceiveProps(nextProps);
+    public componentDidUpdate(prevProps: IDateRangePickerProps, prevState: IDateRangePickerState) {
+        super.componentDidUpdate(prevProps, prevState);
 
         if (
-            !DateUtils.areRangesEqual(this.props.value, nextProps.value) ||
-            this.props.contiguousCalendarMonths !== nextProps.contiguousCalendarMonths
+            !DateUtils.areRangesEqual(prevProps.value, this.props.value) ||
+            prevProps.contiguousCalendarMonths !== this.props.contiguousCalendarMonths
         ) {
             const nextState = getStateChange(
+                prevProps.value,
                 this.props.value,
-                nextProps.value,
                 this.state,
-                nextProps.contiguousCalendarMonths,
+                prevProps.contiguousCalendarMonths,
             );
             this.setState(nextState);
+        }
+
+        if (this.props.selectedShortcutIndex !== prevProps.selectedShortcutIndex) {
+            this.setState({ selectedShortcutIndex: this.props.selectedShortcutIndex });
         }
     }
 
@@ -253,25 +270,46 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         const dateRange: DateRange = [minDate, maxDate];
 
         if (defaultValue != null && !DateUtils.isDayRangeInRange(defaultValue, dateRange)) {
-            throw new Error(Errors.DATERANGEPICKER_DEFAULT_VALUE_INVALID);
+            console.error(Errors.DATERANGEPICKER_DEFAULT_VALUE_INVALID);
         }
 
         if (initialMonth != null && !DateUtils.isMonthInRange(initialMonth, dateRange)) {
-            throw new Error(Errors.DATERANGEPICKER_INITIAL_MONTH_INVALID);
+            console.error(Errors.DATERANGEPICKER_INITIAL_MONTH_INVALID);
         }
 
         if (maxDate != null && minDate != null && maxDate < minDate && !DateUtils.areSameDay(maxDate, minDate)) {
-            throw new Error(Errors.DATERANGEPICKER_MAX_DATE_INVALID);
+            console.error(Errors.DATERANGEPICKER_MAX_DATE_INVALID);
         }
 
         if (value != null && !DateUtils.isDayRangeInRange(value, dateRange)) {
-            throw new Error(Errors.DATERANGEPICKER_VALUE_INVALID);
+            console.error(Errors.DATERANGEPICKER_VALUE_INVALID);
         }
 
         if (boundaryToModify != null && boundaryToModify !== Boundary.START && boundaryToModify !== Boundary.END) {
-            throw new Error(Errors.DATERANGEPICKER_PREFERRED_BOUNDARY_TO_MODIFY_INVALID);
+            console.error(Errors.DATERANGEPICKER_PREFERRED_BOUNDARY_TO_MODIFY_INVALID);
         }
     }
+
+    private shouldHighlightCurrentDay = (date: Date) => {
+        const { highlightCurrentDay } = this.props;
+
+        return highlightCurrentDay && DateUtils.isToday(date);
+    };
+
+    private getDateRangePickerModifiers = () => {
+        const { modifiers } = this.props;
+
+        return combineModifiers(this.modifiers, {
+            isToday: this.shouldHighlightCurrentDay,
+            ...modifiers,
+        });
+    };
+
+    private renderDay = (day: Date) => {
+        const date = day.getDate();
+
+        return <div className={DateClasses.DATEPICKER_DAY_WRAPPER}>{date}</div>;
+    };
 
     private disabledDays = (day: Date) => !DateUtils.isDayInRange(day, [this.props.minDate, this.props.maxDate]);
 
@@ -289,11 +327,19 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
             return null;
         }
 
+        const { selectedShortcutIndex } = this.state;
         const { allowSingleDayRange, maxDate, minDate, timePrecision } = this.props;
         return [
             <Shortcuts
                 key="shortcuts"
-                {...{ allowSingleDayRange, maxDate, minDate, shortcuts, timePrecision }}
+                {...{
+                    allowSingleDayRange,
+                    maxDate,
+                    minDate,
+                    selectedShortcutIndex,
+                    shortcuts,
+                    timePrecision,
+                }}
                 onShortcutClick={this.handleShortcutClick}
             />,
             <Divider key="div" />,
@@ -324,7 +370,8 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
     }
 
     private handleTimeChange = (newTime: Date, dateIndex: number) => {
-        Utils.safeInvoke(this.props.timePickerProps.onChange, newTime);
+        this.props.timePickerProps?.onChange?.(newTime);
+
         const { value, time } = this.state;
         const newValue = DateUtils.getDateTime(
             value[dateIndex] != null ? DateUtils.clone(value[dateIndex]) : new Date(),
@@ -334,7 +381,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         newDateRange[dateIndex] = newValue;
         const newTimeRange: DateRange = [time[0], time[1]];
         newTimeRange[dateIndex] = newTime;
-        Utils.safeInvoke(this.props.onChange, newDateRange);
+        this.props.onChange?.(newDateRange);
         this.setState({ value: newDateRange, time: newTimeRange });
     };
 
@@ -351,7 +398,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         const dayPickerBaseProps: DayPickerProps = {
             locale,
             localeUtils,
-            modifiers: combineModifiers(this.modifiers, this.props.modifiers),
+            modifiers: this.getDateRangePickerModifiers(),
             showOutsideDays: true,
             ...dayPickerProps,
             disabledDays: this.getDisabledDaysModifier(),
@@ -372,6 +419,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
                     numberOfMonths={1}
                     onMonthChange={this.handleLeftMonthChange}
                     toMonth={maxDate}
+                    renderDay={dayPickerProps?.renderDay ?? this.renderDay}
                 />
             );
         } else {
@@ -387,6 +435,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
                     numberOfMonths={1}
                     onMonthChange={this.handleLeftMonthChange}
                     toMonth={DateUtils.getDatePreviousMonth(maxDate)}
+                    renderDay={dayPickerProps?.renderDay ?? this.renderDay}
                 />,
                 <DayPicker
                     key="right"
@@ -399,6 +448,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
                     numberOfMonths={1}
                     onMonthChange={this.handleRightMonthChange}
                     toMonth={maxDate}
+                    renderDay={dayPickerProps?.renderDay ?? this.renderDay}
                 />,
             ];
         }
@@ -460,7 +510,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
     );
 
     private handleDayMouseEnter = (day: Date, modifiers: DayModifiers, e: React.MouseEvent<HTMLDivElement>) => {
-        Utils.safeInvoke(this.props.dayPickerProps.onDayMouseEnter, day, modifiers, e);
+        this.props.dayPickerProps.onDayMouseEnter?.(day, modifiers, e);
 
         if (modifiers.disabled) {
             return;
@@ -472,20 +522,20 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
             this.props.boundaryToModify,
         );
         this.setState({ hoverValue: dateRange });
-        Utils.safeInvoke(this.props.onHoverChange, dateRange, day, boundary);
+        this.props.onHoverChange?.(dateRange, day, boundary);
     };
 
     private handleDayMouseLeave = (day: Date, modifiers: DayModifiers, e: React.MouseEvent<HTMLDivElement>) => {
-        Utils.safeInvoke(this.props.dayPickerProps.onDayMouseLeave, day, modifiers, e);
+        this.props.dayPickerProps.onDayMouseLeave?.(day, modifiers, e);
         if (modifiers.disabled) {
             return;
         }
         this.setState({ hoverValue: undefined });
-        Utils.safeInvoke(this.props.onHoverChange, undefined, day, undefined);
+        this.props.onHoverChange?.(undefined, day, undefined);
     };
 
     private handleDayClick = (day: Date, modifiers: DayModifiers, e: React.MouseEvent<HTMLDivElement>) => {
-        Utils.safeInvoke(this.props.dayPickerProps.onDayClick, day, modifiers, e);
+        this.props.dayPickerProps.onDayClick?.(day, modifiers, e);
 
         if (modifiers.disabled) {
             // rerender base component to get around bug where you can navigate past bounds by clicking days
@@ -507,22 +557,24 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         this.handleNextState(nextValue);
     };
 
-    private handleShortcutClick = (shortcut: IDateRangeShortcut) => {
+    private handleShortcutClick = (shortcut: IDateRangeShortcut, selectedShortcutIndex: number) => {
+        const { onChange, contiguousCalendarMonths, onShortcutChange } = this.props;
         const { dateRange, includeTime } = shortcut;
         if (includeTime) {
             const newDateRange: DateRange = [dateRange[0], dateRange[1]];
             const newTimeRange: DateRange = [dateRange[0], dateRange[1]];
-            const nextState = getStateChange(
-                this.state.value,
-                dateRange,
-                this.state,
-                this.props.contiguousCalendarMonths,
-            );
+            const nextState = getStateChange(this.state.value, dateRange, this.state, contiguousCalendarMonths);
             this.setState({ ...nextState, time: newTimeRange });
-            Utils.safeInvoke(this.props.onChange, newDateRange);
+            onChange?.(newDateRange);
         } else {
             this.handleNextState(dateRange);
         }
+
+        if (this.props.selectedShortcutIndex === undefined) {
+            this.setState({ selectedShortcutIndex });
+        }
+
+        onShortcutChange?.(shortcut, selectedShortcutIndex);
     };
 
     private handleNextState = (nextValue: DateRange) => {
@@ -535,30 +587,30 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
         if (this.props.value == null) {
             this.setState(nextState);
         }
-        Utils.safeInvoke(this.props.onChange, nextValue);
+        this.props.onChange?.(nextValue);
     };
 
     private handleLeftMonthChange = (newDate: Date) => {
         const leftView = MonthAndYear.fromDate(newDate);
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, leftView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(leftView.getFullDate());
         this.updateLeftView(leftView);
     };
 
     private handleRightMonthChange = (newDate: Date) => {
         const rightView = MonthAndYear.fromDate(newDate);
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, rightView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(rightView.getFullDate());
         this.updateRightView(rightView);
     };
 
     private handleLeftMonthSelectChange = (leftMonth: number) => {
         const leftView = new MonthAndYear(leftMonth, this.state.leftView.getYear());
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, leftView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(leftView.getFullDate());
         this.updateLeftView(leftView);
     };
 
     private handleRightMonthSelectChange = (rightMonth: number) => {
         const rightView = new MonthAndYear(rightMonth, this.state.rightView.getYear());
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, rightView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(rightView.getFullDate());
         this.updateRightView(rightView);
     };
 
@@ -587,7 +639,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
      */
     private handleLeftYearSelectChange = (leftDisplayYear: number) => {
         let leftView = new MonthAndYear(this.state.leftView.getMonth(), leftDisplayYear);
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, leftView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(leftView.getFullDate());
         const { minDate, maxDate } = this.props;
         const adjustedMaxDate = DateUtils.getDatePreviousMonth(maxDate);
 
@@ -610,7 +662,7 @@ export class DateRangePicker extends AbstractPureComponent<IDateRangePickerProps
 
     private handleRightYearSelectChange = (rightDisplayYear: number) => {
         let rightView = new MonthAndYear(this.state.rightView.getMonth(), rightDisplayYear);
-        Utils.safeInvoke(this.props.dayPickerProps.onMonthChange, rightView.getFullDate());
+        this.props.dayPickerProps.onMonthChange?.(rightView.getFullDate());
         const { minDate, maxDate } = this.props;
         const adjustedMinDate = DateUtils.getDateNextMonth(minDate);
 
@@ -678,7 +730,7 @@ function getStateChange(
             // If the selected month isn't in either of the displayed months, then
             //   - set the left DayPicker to be the selected month
             //   - set the right DayPicker to +1
-            if (nextValueStartView.isSameMonth(nextValueEndView)) {
+            if (nextValueStartView.isSame(nextValueEndView)) {
                 if (leftView.isSame(nextValueStartView) || rightView.isSame(nextValueStartView)) {
                     // do nothing
                 } else {

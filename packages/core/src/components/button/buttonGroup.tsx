@@ -16,8 +16,9 @@
 
 import classNames from "classnames";
 import * as React from "react";
-import { Alignment } from "../../common/alignment";
-import * as Classes from "../../common/classes";
+import { polyfill } from "react-lifecycles-compat";
+
+import { AbstractPureComponent2, Alignment, Classes } from "../../common";
 import { DISPLAYNAME_PREFIX, HTMLDivProps, IProps } from "../../common/props";
 
 export interface IButtonGroupProps extends IProps, HTMLDivProps {
@@ -31,24 +32,28 @@ export interface IButtonGroupProps extends IProps, HTMLDivProps {
 
     /**
      * Whether the button group should take up the full width of its container.
+     *
      * @default false
      */
     fill?: boolean;
 
     /**
      * Whether the child buttons should appear with minimal styling.
+     *
      * @default false
      */
     minimal?: boolean;
 
     /**
      * Whether the child buttons should appear with large styling.
+     *
      * @default false
      */
     large?: boolean;
 
     /**
      * Whether the button group should appear with vertical styling.
+     *
      * @default false
      */
     vertical?: boolean;
@@ -56,7 +61,8 @@ export interface IButtonGroupProps extends IProps, HTMLDivProps {
 
 // this component is simple enough that tests would be purely tautological.
 /* istanbul ignore next */
-export class ButtonGroup extends React.PureComponent<IButtonGroupProps, {}> {
+@polyfill
+export class ButtonGroup extends AbstractPureComponent2<IButtonGroupProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.ButtonGroup`;
 
     public render() {

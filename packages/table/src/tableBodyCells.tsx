@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { IProps, Utils as CoreUtils } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
+
+import { AbstractComponent2, IProps, Utils as CoreUtils } from "@blueprintjs/core";
 
 import { emptyCellRenderer, ICellRenderer } from "./cell/cell";
 import { Batcher } from "./common/batcher";
@@ -59,6 +60,7 @@ export interface ITableBodyCellsProps extends IRowIndices, IColumnIndices, IProp
      * `RenderMode.BATCH_ON_UPDATE`, because there are actually multiple updates
      * that need to happen at higher levels before the table is considered fully
      * "mounted"; thus, we let higher components tell us when to switch modes.
+     *
      * @default RenderMode.BATCH
      */
     renderMode?: RenderMode.BATCH | RenderMode.NONE;
@@ -71,20 +73,20 @@ export interface ITableBodyCellsProps extends IRowIndices, IColumnIndices, IProp
     viewportRect: Rect;
 }
 
-const SHALLOW_COMPARE_BLACKLIST: Array<keyof ITableBodyCellsProps> = ["viewportRect"];
+const SHALLOW_COMPARE_DENYLIST: Array<keyof ITableBodyCellsProps> = ["viewportRect"];
 
 /**
  * We don't want to reset the batcher when this set of keys changes. Any other
  * changes should reset the batcher's internal cache.
  */
-const BATCHER_RESET_PROP_KEYS_BLACKLIST: Array<keyof ITableBodyCellsProps> = [
+const BATCHER_RESET_PROP_KEYS_DENYLIST: Array<keyof ITableBodyCellsProps> = [
     "columnIndexEnd",
     "columnIndexStart",
     "rowIndexEnd",
     "rowIndexStart",
 ];
 
-export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
+export class TableBodyCells extends AbstractComponent2<ITableBodyCellsProps> {
     public static defaultProps = {
         renderMode: RenderMode.BATCH,
     };
@@ -101,22 +103,22 @@ export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
 
     public shouldComponentUpdate(nextProps?: ITableBodyCellsProps) {
         return (
-            !CoreUtils.shallowCompareKeys(nextProps, this.props, { exclude: SHALLOW_COMPARE_BLACKLIST }) ||
+            !CoreUtils.shallowCompareKeys(nextProps, this.props, {
+                exclude: SHALLOW_COMPARE_DENYLIST,
+            }) ||
             // "viewportRect" is not a plain object, so we can't just deep
             // compare; we need custom logic.
             this.didViewportRectChange(nextProps.viewportRect, this.props.viewportRect)
         );
     }
 
-    public componentWillUpdate(nextProps?: ITableBodyCellsProps) {
-        const resetKeysBlacklist = { exclude: BATCHER_RESET_PROP_KEYS_BLACKLIST };
-        const shouldResetBatcher = !CoreUtils.shallowCompareKeys(this.props, nextProps, resetKeysBlacklist);
+    public componentDidUpdate(prevProps: ITableBodyCellsProps) {
+        const shouldResetBatcher = !CoreUtils.shallowCompareKeys(prevProps, this.props, {
+            exclude: BATCHER_RESET_PROP_KEYS_DENYLIST,
+        });
         if (shouldResetBatcher) {
             this.batcher.reset();
         }
-    }
-
-    public componentDidUpdate() {
         this.maybeInvokeOnCompleteRender();
     }
 
@@ -148,8 +150,7 @@ export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
             this.batcher.idleCallback(() => this.forceUpdate());
         }
 
-        const cells: Array<React.ReactElement<any>> = this.batcher.getList();
-        return cells;
+        return this.batcher.getList();
     }
 
     private renderAllCells() {
@@ -185,7 +186,10 @@ export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
 
     private renderCell = (rowIndex: number, columnIndex: number, extremaClasses: string[], isGhost: boolean) => {
         const { cellRenderer, focusedCell, loading, grid } = this.props;
-        const baseCell = isGhost ? emptyCellRenderer() : cellRenderer(rowIndex, columnIndex);
+        let baseCell = isGhost ? emptyCellRenderer() : cellRenderer(rowIndex, columnIndex);
+        // cellRenderer still may return null
+        baseCell = baseCell == null ? emptyCellRenderer() : baseCell;
+
         const className = classNames(
             cellClassNames(rowIndex, columnIndex),
             extremaClasses,
@@ -202,7 +206,13 @@ export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
 
         const style = { ...baseCell.props.style, ...Rect.style(rect) };
         const isFocused = focusedCell != null && focusedCell.row === rowIndex && focusedCell.col === columnIndex;
-        return React.cloneElement(baseCell, { className, key, isFocused, loading: cellLoading, style });
+        return React.cloneElement(baseCell, {
+            className,
+            isFocused,
+            key,
+            loading: cellLoading,
+            style,
+        });
     };
 
     // Callbacks
@@ -212,7 +222,7 @@ export class TableBodyCells extends React.Component<ITableBodyCellsProps, {}> {
         const { onCompleteRender, renderMode } = this.props;
 
         if (renderMode === RenderMode.NONE || (renderMode === RenderMode.BATCH && this.batcher.isDone())) {
-            CoreUtils.safeInvoke(onCompleteRender);
+            onCompleteRender?.();
         }
     }
 

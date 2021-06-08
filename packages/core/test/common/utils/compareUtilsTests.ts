@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-classes-per-file */
+
 import { expect } from "chai";
-import { IKeyBlacklist, IKeyWhitelist } from "../../../src/common/utils";
+
+import { IKeyAllowlist, IKeyDenylist } from "../../../src/common/utils";
 import * as CompareUtils from "../../../src/common/utils/compareUtils";
 
 describe("CompareUtils", () => {
@@ -87,7 +90,7 @@ describe("CompareUtils", () => {
                 expectedResult: boolean,
                 a: any,
                 b: any,
-                keys: IKeyBlacklist<IKeys> | IKeyWhitelist<IKeys>,
+                keys: IKeyDenylist<IKeys> | IKeyAllowlist<IKeys>,
             ) {
                 it(getCompareTestDescription(a, b), () => {
                     expect(CompareUtils.shallowCompareKeys(a, b, keys)).to.equal(expectedResult);
@@ -95,7 +98,7 @@ describe("CompareUtils", () => {
             }
         });
 
-        describe("with `keys` defined as blacklist", () => {
+        describe("with `keys` defined as denylist", () => {
             describe("returns true if only the specified values are shallowly equal", () => {
                 runTest(true, { a: 1 }, { a: 1 }, bl(["b", "c", "d"]));
                 runTest(true, { a: 1, b: [1, 2, 3], c: "3" }, { b: [1, 2, 3], a: 1, c: "3" }, bl(["b"]));
@@ -125,7 +128,7 @@ describe("CompareUtils", () => {
                 expectedResult: boolean,
                 a: any,
                 b: any,
-                keys: IKeyBlacklist<IKeys> | IKeyWhitelist<IKeys>,
+                keys: IKeyDenylist<IKeys> | IKeyAllowlist<IKeys>,
             ) {
                 it(getCompareTestDescription(a, b), () => {
                     expect(CompareUtils.shallowCompareKeys(a, b, keys)).to.equal(expectedResult);
@@ -169,7 +172,6 @@ describe("CompareUtils", () => {
     });
 
     describe("deepCompareKeys", () => {
-        // tslint:disable:max-classes-per-file
         class DVD {
             public constructor() {
                 /* Empty */
@@ -181,7 +183,6 @@ describe("CompareUtils", () => {
                 /* Empty */
             }
         }
-        // tslint:enable:max-classes-per-file
 
         describe("with `keys` defined", () => {
             describe("returns true if only the specified values are deeply equal", () => {
@@ -269,60 +270,6 @@ describe("CompareUtils", () => {
         });
     });
 
-    describe("getShallowUnequalKeyValues", () => {
-        describe("with `keys` defined as whitelist", () => {
-            describe("returns empty array if the specified values are shallowly equal", () => {
-                runTest([], { a: 1, b: [1, 2, 3], c: "3" }, { b: [1, 2, 3], a: 1, c: "3" }, wl(["a", "c"]));
-            });
-
-            describe("returns unequal key/values if any specified values are not shallowly equal", () => {
-                // identical objects, but different instances
-                runTest(
-                    [{ key: "a", valueA: [1, "2", true], valueB: [1, "2", true] }],
-                    { a: [1, "2", true] },
-                    { a: [1, "2", true] },
-                    wl(["a"]),
-                );
-                // different primitive-type values
-                runTest([{ key: "a", valueA: 1, valueB: 2 }], { a: 1 }, { a: 2 }, wl(["a"]));
-            });
-        });
-
-        describe("with `keys` defined as blacklist", () => {
-            describe("returns empty array if the specified values are shallowly equal", () => {
-                runTest([], { a: 1, b: [1, 2, 3], c: "3" }, { b: [1, 2, 3], a: 1, c: "3" }, bl(["b"]));
-            });
-
-            describe("returns unequal keys/values if any specified values are not shallowly equal", () => {
-                runTest(
-                    [{ key: "a", valueA: [1, "2", true], valueB: [1, "2", true] }],
-                    { a: [1, "2", true] },
-                    { a: [1, "2", true] },
-                    bl(["b", "c"]),
-                );
-                runTest([{ key: "a", valueA: 1, valueB: 2 }], { a: 1 }, { a: 2 }, bl(["b"]));
-            });
-        });
-
-        describe("with `keys` not defined", () => {
-            describe("returns empty array if values are shallowly equal", () => {
-                runTest([], { a: 1, b: "2", c: true }, { a: 1, b: "2", c: true });
-                runTest([], undefined, undefined);
-                runTest([], null, undefined);
-            });
-
-            describe("returns unequal key/values if any specified values are not shallowly equal", () => {
-                runTest([{ key: "a", valueA: 1, valueB: 2 }], { a: 1 }, { a: 2 });
-            });
-        });
-
-        function runTest(expectedResult: any[], a: any, b: any, keys?: IKeyBlacklist<IKeys> | IKeyWhitelist<IKeys>) {
-            it(getCompareTestDescription(a, b, keys), () => {
-                expect(CompareUtils.getShallowUnequalKeyValues(a, b, keys)).to.deep.equal(expectedResult);
-            });
-        }
-    });
-
     describe("getDeepUnequalKeyValues", () => {
         describe("with `keys` defined", () => {
             describe("returns empty array if only the specified values are deeply equal", () => {
@@ -331,7 +278,10 @@ describe("CompareUtils", () => {
 
             describe("returns unequal key/values if any specified values are not deeply equal", () => {
                 runTest(
-                    [{ key: "a", valueA: 2, valueB: 1 }, { key: "b", valueA: [2, 3, 4], valueB: [1, 2, 3] }],
+                    [
+                        { key: "a", valueA: 2, valueB: 1 },
+                        { key: "b", valueA: [2, 3, 4], valueB: [1, 2, 3] },
+                    ],
                     { a: 2, b: [2, 3, 4], c: "3" },
                     { b: [1, 2, 3], a: 1, c: "3" },
                     ["a", "b"],
@@ -374,15 +324,15 @@ interface IKeys {
 }
 
 /**
- * A compactly named function for converting a string array to a key blacklist.
+ * A compactly named function for converting a string array to a key denylist.
  */
-function bl(keys: string[]): IKeyBlacklist<IKeys> {
+function bl(keys: string[]): IKeyDenylist<IKeys> {
     return { exclude: keys as Array<keyof IKeys> };
 }
 
 /**
  * A compactly named function for converting a string array to a key whitelist.
  */
-function wl(keys: string[]): IKeyWhitelist<IKeys> {
+function wl(keys: string[]): IKeyAllowlist<IKeys> {
     return { include: keys as Array<keyof IKeys> };
 }

@@ -16,11 +16,15 @@
 
 import { expect } from "chai";
 import { Data, Placement, Position } from "popper.js";
+
 import { arrowOffsetModifier, getAlignment, getOppositePosition } from "../../src/components/popover/popperUtils";
 
 describe("Popper utils", () => {
     it("getOppositePosition returns opposite", () => {
-        [["top", "bottom"], ["left", "right"]].map(([a, b]) => {
+        [
+            ["top", "bottom"],
+            ["left", "right"],
+        ].map(([a, b]) => {
             expect(getOppositePosition(a as Position)).to.equal(b);
             expect(getOppositePosition(b as Position)).to.equal(a);
         });
@@ -34,18 +38,22 @@ describe("Popper utils", () => {
 
     describe("arrow offset modifier shifts away from popover", () => {
         it("right", () => {
-            const { offsets: { popper, arrow } } = arrowOffsetModifier(getPopperData("right"), {});
+            const {
+                offsets: { popper, arrow },
+            } = arrowOffsetModifier(getPopperData("right"), {});
             expect(popper.left).to.be.greaterThan(arrow.left);
         });
 
         it("left", () => {
-            const { offsets: { popper, arrow } } = arrowOffsetModifier(getPopperData("left"), {});
+            const {
+                offsets: { popper, arrow },
+            } = arrowOffsetModifier(getPopperData("left"), {});
             expect(popper.left).to.be.lessThan(arrow.left);
         });
 
         function getPopperData(placement: Placement) {
             // minimal data fields necessary for modifier implementation
-            // tslint:disable-next-line:no-object-literal-type-assertion
+            // eslint-disable-line @typescript-eslint/consistent-type-assertions
             return {
                 arrowElement: { clientWidth: 20 },
                 offsets: {

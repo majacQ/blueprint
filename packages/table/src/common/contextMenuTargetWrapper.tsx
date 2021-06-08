@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import { ContextMenuTarget, IProps } from "@blueprintjs/core";
+/* eslint-disable deprecation/deprecation */
+
 import * as React from "react";
+
+import { ContextMenuTarget, IProps } from "@blueprintjs/core";
 
 export interface IContextMenuTargetWrapper extends IProps {
     renderContextMenu: (e: React.MouseEvent<HTMLElement>) => JSX.Element;
@@ -29,7 +32,7 @@ export interface IContextMenuTargetWrapper extends IProps {
  * chains.
  */
 @ContextMenuTarget
-export class ContextMenuTargetWrapper extends React.PureComponent<IContextMenuTargetWrapper, {}> {
+export class ContextMenuTargetWrapper extends React.PureComponent<IContextMenuTargetWrapper> {
     public render() {
         const { className, children, style } = this.props;
         return (

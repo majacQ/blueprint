@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { Classes as CoreClasses, H4, Menu, MenuItem } from "@blueprintjs/core";
 import { expect } from "chai";
 import { shallow } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { Classes as CoreClasses, H4, Menu, MenuItem } from "@blueprintjs/core";
+
+import { ColumnHeaderCell, IColumnHeaderCellProps } from "../src";
 import * as Classes from "../src/common/classes";
-import { ColumnHeaderCell, IColumnHeaderCellProps } from "../src/index";
 import { ElementHarness, ReactHarness } from "./harness";
 import { createTableOfSize } from "./mocks/table";
 
@@ -129,9 +130,7 @@ describe("<ColumnHeaderCell>", () => {
         function expectMenuToOpen(table: ElementHarness, menuClickSpy: sinon.SinonSpy) {
             table.find(`.${Classes.TABLE_COLUMN_HEADERS}`).mouse("mousemove");
             table.find(`.${Classes.TABLE_TH_MENU} .${CoreClasses.POPOVER_TARGET}`).mouse("click");
-            ElementHarness.document()
-                .find('[data-icon="export"]')
-                .mouse("click");
+            ElementHarness.document().find('[data-icon="export"]').mouse("click");
             expect(menuClickSpy.called).to.be.true;
         }
     });
@@ -152,7 +151,7 @@ describe("<ColumnHeaderCell>", () => {
             expect(element.find(`.${Classes.TABLE_COLUMN_NAME} .${REORDER_HANDLE_CLASS}`).exists()).to.be.true;
         });
 
-        function mount(props: Partial<IColumnHeaderCellProps> & object) {
+        function mount(props: Partial<IColumnHeaderCellProps>) {
             const element = harness.mount(
                 <ColumnHeaderCell
                     enableColumnReordering={props.enableColumnReordering}

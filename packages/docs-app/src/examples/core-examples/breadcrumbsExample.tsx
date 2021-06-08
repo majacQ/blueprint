@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-classes-per-file */
+
 import * as React from "react";
 
-import { Boundary, Breadcrumbs, Card, H5, IBreadcrumbProps, Label, RadioGroup, Slider } from "@blueprintjs/core";
+import {
+    Boundary,
+    Breadcrumbs,
+    Card,
+    Checkbox,
+    H5,
+    IBreadcrumbProps,
+    InputGroup,
+    Label,
+    RadioGroup,
+    Slider,
+} from "@blueprintjs/core";
 import { Example, handleStringChange, IExampleProps } from "@blueprintjs/docs-theme";
 
 export interface IBreadcrumbsExampleState {
     collapseFrom: Boundary;
+    renderCurrentAsInput: boolean;
     width: number;
 }
 
@@ -35,16 +49,19 @@ const ITEMS: IBreadcrumbProps[] = [
     { icon: "folder-close", text: "Janet" },
     { href: "#", icon: "folder-close", text: "Photos" },
     { href: "#", icon: "folder-close", text: "Wednesday" },
-    { icon: "document", text: "image.jpg" },
+    { icon: "document", text: "image.jpg", current: true },
 ];
 
 export class BreadcrumbsExample extends React.PureComponent<IExampleProps, IBreadcrumbsExampleState> {
     public state: IBreadcrumbsExampleState = {
         collapseFrom: Boundary.START,
+        renderCurrentAsInput: false,
         width: 50,
     };
 
-    private handleChangeCollapse = handleStringChange((collapseFrom: Boundary) => this.setState({ collapseFrom }));
+    private handleChangeCollapse = handleStringChange(collapseFrom =>
+        this.setState({ collapseFrom: collapseFrom as Boundary }),
+    );
 
     public render() {
         const options = (
@@ -57,6 +74,12 @@ export class BreadcrumbsExample extends React.PureComponent<IExampleProps, IBrea
                     onChange={this.handleChangeCollapse}
                     options={COLLAPSE_FROM_RADIOS}
                     selectedValue={this.state.collapseFrom.toString()}
+                />
+                <Checkbox
+                    name="renderCurrent"
+                    label="Render current breadcrumb as input"
+                    onChange={this.handleChangeRenderCurrentAsInput}
+                    checked={this.state.renderCurrentAsInput}
                 />
                 <H5>Example</H5>
                 <Label>Width</Label>
@@ -71,19 +94,48 @@ export class BreadcrumbsExample extends React.PureComponent<IExampleProps, IBrea
             </>
         );
 
-        const { collapseFrom, width } = this.state;
+        const { collapseFrom, renderCurrentAsInput, width } = this.state;
         return (
             <Example options={options} {...this.props}>
                 <Card elevation={0} style={{ width: `${width}%` }}>
-                    <Breadcrumbs collapseFrom={collapseFrom} items={ITEMS} />
+                    <Breadcrumbs
+                        collapseFrom={collapseFrom}
+                        items={ITEMS}
+                        currentBreadcrumbRenderer={renderCurrentAsInput ? this.renderBreadcrumbInput : undefined}
+                    />
                 </Card>
             </Example>
         );
     }
 
-    private renderLabel(value: number) {
+    private renderLabel = (value: number) => {
         return `${value}%`;
-    }
+    };
 
     private handleChangeWidth = (width: number) => this.setState({ width });
+
+    private handleChangeRenderCurrentAsInput = () =>
+        this.setState({ renderCurrentAsInput: !this.state.renderCurrentAsInput });
+
+    private renderBreadcrumbInput = ({ text }: IBreadcrumbProps) => {
+        return <BreadcrumbInput defaultValue={typeof text === "string" ? text : undefined} />;
+    };
+}
+
+/* eslint-disable  max-classes-per-file */
+class BreadcrumbInput extends React.PureComponent<IBreadcrumbProps & { defaultValue: string | undefined }> {
+    public state = {
+        text: this.props.defaultValue ?? "",
+    };
+
+    public render() {
+        const { text } = this.state;
+        return <InputGroup placeholder="rename me" value={text} onChange={this.handleChange} />;
+    }
+
+    private handleChange = (event: React.FormEvent<HTMLInputElement>) => {
+        this.setState({
+            text: (event.target as HTMLInputElement).value,
+        });
+    };
 }

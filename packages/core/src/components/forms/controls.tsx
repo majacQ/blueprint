@@ -16,21 +16,21 @@
 
 // we need some empty interfaces to show up in docs
 // HACKHACK: these components should go in separate files
-// tslint:disable max-classes-per-file no-empty-interface
+/* eslint-disable max-classes-per-file, @typescript-eslint/no-empty-interface */
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import { Alignment } from "../../common/alignment";
-import * as Classes from "../../common/classes";
+import { AbstractPureComponent2, Alignment, Classes, IRef, refHandler } from "../../common";
 import { DISPLAYNAME_PREFIX, HTMLInputProps, IProps } from "../../common/props";
-import { safeInvoke } from "../../common/utils";
 
 export interface IControlProps extends IProps, HTMLInputProps {
     // NOTE: HTML props are duplicated here to provide control-specific documentation
 
     /**
      * Alignment of the indicator within container.
+     *
      * @default Alignment.LEFT
      */
     alignIndicator?: Alignment;
@@ -48,7 +48,7 @@ export interface IControlProps extends IProps, HTMLInputProps {
     disabled?: boolean;
 
     /** Ref handler that receives HTML `<input>` element backing this component. */
-    inputRef?: (ref: HTMLInputElement | null) => any;
+    inputRef?: IRef<HTMLInputElement>;
 
     /** Whether the control should appear as an inline element. */
     inline?: boolean;
@@ -99,7 +99,7 @@ interface IControlInternalProps extends IControlProps {
  * Renders common control elements, with additional props to customize appearance.
  * This component is not exported and is only used in this file for `Checkbox`, `Radio`, and `Switch` below.
  */
-const Control: React.SFC<IControlInternalProps> = ({
+const Control: React.FunctionComponent<IControlInternalProps> = ({
     alignIndicator,
     children,
     className,
@@ -112,7 +112,7 @@ const Control: React.SFC<IControlInternalProps> = ({
     style,
     type,
     typeClassName,
-    tagName: TagName = "label",
+    tagName = "label",
     ...htmlProps
 }) => {
     const classes = classNames(
@@ -126,14 +126,15 @@ const Control: React.SFC<IControlInternalProps> = ({
         Classes.alignmentClass(alignIndicator),
         className,
     );
-    return (
-        <TagName className={classes} style={style}>
-            <input {...htmlProps} ref={inputRef} type={type} />
-            <span className={Classes.CONTROL_INDICATOR}>{indicatorChildren}</span>
-            {label}
-            {labelElement}
-            {children}
-        </TagName>
+
+    return React.createElement(
+        tagName,
+        { className: classes, style },
+        <input {...htmlProps} ref={inputRef} type={type} />,
+        <span className={Classes.CONTROL_INDICATOR}>{indicatorChildren}</span>,
+        label,
+        labelElement,
+        children,
     );
 };
 
@@ -146,6 +147,7 @@ export interface ISwitchProps extends IControlProps {
      * Text to display inside the switch indicator when checked.
      * If `innerLabel` is provided and this prop is omitted, then `innerLabel`
      * will be used for both states.
+     *
      * @default innerLabel
      */
     innerLabelChecked?: string;
@@ -156,7 +158,8 @@ export interface ISwitchProps extends IControlProps {
     innerLabel?: string;
 }
 
-export class Switch extends React.PureComponent<ISwitchProps> {
+@polyfill
+export class Switch extends AbstractPureComponent2<ISwitchProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Switch`;
 
     public render() {
@@ -189,9 +192,10 @@ export class Switch extends React.PureComponent<ISwitchProps> {
 // Radio
 //
 
-export interface IRadioProps extends IControlProps {}
+export type IRadioProps = IControlProps;
 
-export class Radio extends React.PureComponent<IRadioProps> {
+@polyfill
+export class Radio extends AbstractPureComponent2<IRadioProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Radio`;
 
     public render() {
@@ -223,15 +227,27 @@ export interface ICheckboxState {
     indeterminate: boolean;
 }
 
-export class Checkbox extends React.PureComponent<ICheckboxProps, ICheckboxState> {
+@polyfill
+export class Checkbox extends AbstractPureComponent2<ICheckboxProps, ICheckboxState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Checkbox`;
+
+    public static getDerivedStateFromProps({ indeterminate }: ICheckboxProps): ICheckboxState | null {
+        // put props into state if controlled by props
+        if (indeterminate != null) {
+            return { indeterminate };
+        }
+
+        return null;
+    }
 
     public state: ICheckboxState = {
         indeterminate: this.props.indeterminate || this.props.defaultIndeterminate || false,
     };
 
     // must maintain internal reference for `indeterminate` support
-    private input: HTMLInputElement;
+    public input: HTMLInputElement | null = null;
+
+    private handleInputRef: IRef<HTMLInputElement> = refHandler(this, "input", this.props.inputRef);
 
     public render() {
         const { defaultIndeterminate, indeterminate, ...controlProps } = this.props;
@@ -244,13 +260,6 @@ export class Checkbox extends React.PureComponent<ICheckboxProps, ICheckboxState
                 typeClassName={Classes.CHECKBOX}
             />
         );
-    }
-
-    public componentWillReceiveProps({ indeterminate }: ICheckboxProps) {
-        // put props into state if controlled by props
-        if (indeterminate != null) {
-            this.setState({ indeterminate });
-        }
     }
 
     public componentDidMount() {
@@ -274,11 +283,6 @@ export class Checkbox extends React.PureComponent<ICheckboxProps, ICheckboxState
             this.setState({ indeterminate });
         }
         // otherwise wait for props change. always invoke handler.
-        safeInvoke(this.props.onChange, evt);
-    };
-
-    private handleInputRef = (ref: HTMLInputElement) => {
-        this.input = ref;
-        safeInvoke(this.props.inputRef, ref);
+        this.props.onChange?.(evt);
     };
 }

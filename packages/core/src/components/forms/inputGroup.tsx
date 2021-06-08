@@ -16,27 +16,48 @@
 
 import classNames from "classnames";
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import * as Classes from "../../common/classes";
+import { AbstractPureComponent2, Classes, IRef } from "../../common";
+import * as Errors from "../../common/errors";
 import {
     DISPLAYNAME_PREFIX,
     HTMLInputProps,
     IControlledProps,
+    IControlledProps2,
     IIntentProps,
     IProps,
     MaybeElement,
     removeNonHTMLProps,
 } from "../../common/props";
 import { Icon, IconName } from "../icon/icon";
+import { AsyncControllableInput } from "./asyncControllableInput";
 
-const DEFAULT_RIGHT_ELEMENT_WIDTH = 10;
+/**
+ * @deprecated use IInputGroupProps2.
+ *
+ * NOTE: This interface does not extend HTMLInputProps due to incompatiblity with `IControlledProps`.
+ * Instead, we union the props in the component definition, which does work and properly disallows `string[]` values.
+ */
 
-// NOTE: This interface does not extend HTMLInputProps due to incompatiblity with `IControlledProps`.
-// Instead, we union the props in the component definition, which does work and properly disallows `string[]` values.
-export interface IInputGroupProps extends IControlledProps, IIntentProps, IProps {
+export interface IInputGroupProps
+    // eslint-disable-next-line deprecation/deprecation
+    extends IControlledProps,
+        IIntentProps,
+        IProps {
+    /**
+     * Set this to `true` if you will be controlling the `value` of this input with asynchronous updates.
+     * These may occur if you do not immediately call setState in a parent component with the value from
+     * the `onChange` handler, or if working with certain libraries like __redux-form__.
+     *
+     * @default false
+     */
+    asyncControl?: boolean;
+
     /**
      * Whether the input is non-interactive.
      * Note that `rightElement` must be disabled separately; this prop will not affect it.
+     *
      * @default false
      */
     disabled?: boolean;
@@ -46,12 +67,19 @@ export interface IInputGroupProps extends IControlledProps, IIntentProps, IProps
      */
     fill?: boolean;
 
-    /** Ref handler that receives HTML `<input>` element backing this component. */
-    inputRef?: (ref: HTMLInputElement | null) => any;
+    /** Ref handler or a ref object that receives HTML `<input>` element backing this component. */
+    inputRef?: IRef<HTMLInputElement>;
 
     /**
-     * Name of a Blueprint UI icon (or an icon element) to render on the left side of the input group,
-     * before the user's cursor.
+     * Element to render on the left side of input.  This prop is mutually exclusive
+     * with `leftIcon`.
+     */
+    leftElement?: JSX.Element;
+
+    /**
+     * Name of a Blueprint UI icon to render on the left side of the input group,
+     * before the user's cursor.  This prop is mutually exclusive with `leftElement`.
+     * Usage with content is deprecated.  Use `leftElement` for elements.
      */
     leftIcon?: IconName | MaybeElement;
 
@@ -75,30 +103,104 @@ export interface IInputGroupProps extends IControlledProps, IIntentProps, IProps
 
     /**
      * HTML `input` type attribute.
+     *
+     * @default "text"
+     */
+    type?: string;
+}
+
+export interface IInputGroupProps2
+    extends Omit<HTMLInputProps, keyof IControlledProps2>,
+        IControlledProps2,
+        IIntentProps,
+        IProps {
+    /**
+     * Set this to `true` if you will be controlling the `value` of this input with asynchronous updates.
+     * These may occur if you do not immediately call setState in a parent component with the value from
+     * the `onChange` handler, or if working with certain libraries like __redux-form__.
+     *
+     * @default false
+     */
+    asyncControl?: boolean;
+
+    /**
+     * Whether the input is non-interactive.
+     * Note that `rightElement` must be disabled separately; this prop will not affect it.
+     *
+     * @default false
+     */
+    disabled?: boolean;
+
+    /**
+     * Whether the component should take up the full width of its container.
+     */
+    fill?: boolean;
+
+    /** Ref handler or a ref object that receives HTML `<input>` element backing this component. */
+    inputRef?: IRef<HTMLInputElement>;
+
+    /**
+     * Element to render on the left side of input.  This prop is mutually exclusive
+     * with `leftIcon`.
+     */
+    leftElement?: JSX.Element;
+
+    /**
+     * Name of a Blueprint UI icon to render on the left side of the input group,
+     * before the user's cursor.  This prop is mutually exclusive with `leftElement`.
+     * Usage with content is deprecated.  Use `leftElement` for elements.
+     */
+    leftIcon?: IconName | MaybeElement;
+
+    /** Whether this input should use large styles. */
+    large?: boolean;
+
+    /** Whether this input should use small styles. */
+    small?: boolean;
+
+    /** Placeholder text in the absence of any value. */
+    placeholder?: string;
+
+    /**
+     * Element to render on right side of input.
+     * For best results, use a minimal button, tag, or small spinner.
+     */
+    rightElement?: JSX.Element;
+
+    /** Whether the input (and any buttons) should appear with rounded caps. */
+    round?: boolean;
+
+    /**
+     * HTML `input` type attribute.
+     *
      * @default "text"
      */
     type?: string;
 }
 
 export interface IInputGroupState {
-    rightElementWidth: number;
+    leftElementWidth?: number;
+    rightElementWidth?: number;
 }
 
-export class InputGroup extends React.PureComponent<IInputGroupProps & HTMLInputProps, IInputGroupState> {
+@polyfill
+export class InputGroup extends AbstractPureComponent2<IInputGroupProps2, IInputGroupState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.InputGroup`;
 
-    public state: IInputGroupState = {
-        rightElementWidth: DEFAULT_RIGHT_ELEMENT_WIDTH,
-    };
+    public state: IInputGroupState = {};
 
-    private rightElement: HTMLElement;
+    private leftElement: HTMLElement | null = null;
+
+    private rightElement: HTMLElement | null = null;
+
     private refHandlers = {
-        rightElement: (ref: HTMLSpanElement) => (this.rightElement = ref),
+        leftElement: (ref: HTMLSpanElement | null) => (this.leftElement = ref),
+        rightElement: (ref: HTMLSpanElement | null) => (this.rightElement = ref),
     };
 
     public render() {
-        const { className, disabled, fill, intent, large, small, leftIcon, round } = this.props;
-        const classes = classNames(
+        const { asyncControl = false, className, disabled, fill, inputRef, intent, large, small, round } = this.props;
+        const inputGroupClasses = classNames(
             Classes.INPUT_GROUP,
             Classes.intentClass(intent),
             {
@@ -110,18 +212,26 @@ export class InputGroup extends React.PureComponent<IInputGroupProps & HTMLInput
             },
             className,
         );
-        const style: React.CSSProperties = { ...this.props.style, paddingRight: this.state.rightElementWidth };
+        const style: React.CSSProperties = {
+            ...this.props.style,
+            paddingLeft: this.state.leftElementWidth,
+            paddingRight: this.state.rightElementWidth,
+        };
+        const inputProps = {
+            type: "text",
+            ...removeNonHTMLProps(this.props),
+            className: Classes.INPUT,
+            style,
+        };
 
         return (
-            <div className={classes}>
-                <Icon icon={leftIcon} />
-                <input
-                    type="text"
-                    {...removeNonHTMLProps(this.props)}
-                    className={Classes.INPUT}
-                    ref={this.props.inputRef}
-                    style={style}
-                />
+            <div className={inputGroupClasses}>
+                {this.maybeRenderLeftElement()}
+                {asyncControl ? (
+                    <AsyncControllableInput {...inputProps} inputRef={inputRef} />
+                ) : (
+                    <input {...inputProps} ref={inputRef} />
+                )}
                 {this.maybeRenderRightElement()}
             </div>
         );
@@ -131,8 +241,33 @@ export class InputGroup extends React.PureComponent<IInputGroupProps & HTMLInput
         this.updateInputWidth();
     }
 
-    public componentDidUpdate() {
-        this.updateInputWidth();
+    public componentDidUpdate(prevProps: IInputGroupProps2) {
+        const { leftElement, rightElement } = this.props;
+        if (prevProps.leftElement !== leftElement || prevProps.rightElement !== rightElement) {
+            this.updateInputWidth();
+        }
+    }
+
+    protected validateProps(props: IInputGroupProps2) {
+        if (props.leftElement != null && props.leftIcon != null) {
+            console.warn(Errors.INPUT_WARN_LEFT_ELEMENT_LEFT_ICON_MUTEX);
+        }
+    }
+
+    private maybeRenderLeftElement() {
+        const { leftElement, leftIcon } = this.props;
+
+        if (leftElement != null) {
+            return (
+                <span className={Classes.INPUT_LEFT_CONTAINER} ref={this.refHandlers.leftElement}>
+                    {leftElement}
+                </span>
+            );
+        } else if (leftIcon != null) {
+            return <Icon icon={leftIcon} />;
+        }
+
+        return undefined;
     }
 
     private maybeRenderRightElement() {
@@ -148,14 +283,26 @@ export class InputGroup extends React.PureComponent<IInputGroupProps & HTMLInput
     }
 
     private updateInputWidth() {
+        const { leftElementWidth, rightElementWidth } = this.state;
+
+        if (this.leftElement != null) {
+            const { clientWidth } = this.leftElement;
+            // small threshold to prevent infinite loops
+            if (leftElementWidth === undefined || Math.abs(clientWidth - leftElementWidth) > 2) {
+                this.setState({ leftElementWidth: clientWidth });
+            }
+        } else {
+            this.setState({ leftElementWidth: undefined });
+        }
+
         if (this.rightElement != null) {
             const { clientWidth } = this.rightElement;
             // small threshold to prevent infinite loops
-            if (Math.abs(clientWidth - this.state.rightElementWidth) > 2) {
+            if (rightElementWidth === undefined || Math.abs(clientWidth - rightElementWidth) > 2) {
                 this.setState({ rightElementWidth: clientWidth });
             }
         } else {
-            this.setState({ rightElementWidth: DEFAULT_RIGHT_ELEMENT_WIDTH });
+            this.setState({ rightElementWidth: undefined });
         }
     }
 }

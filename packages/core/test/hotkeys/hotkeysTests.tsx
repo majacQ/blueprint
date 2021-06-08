@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-// tslint:disable max-classes-per-file
+/* eslint-disable max-classes-per-file */
 
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import { mount, ReactWrapper } from "enzyme";
 import * as React from "react";
 import { SinonSpy, spy } from "sinon";
 
 import { dispatchTestKeyboardEvent, expectPropValidationError } from "@blueprintjs/test-commons";
 
-import { HOTKEYS_HOTKEY_CHILDREN } from "../../src/common/errors";
-import { normalizeKeyCombo } from "../../src/components/hotkeys/hotkeyParser";
 import {
     Classes,
     comboMatches,
@@ -36,7 +34,9 @@ import {
     HotkeysTarget,
     IKeyCombo,
     parseKeyCombo,
-} from "../../src/index";
+} from "../../src";
+import { HOTKEYS_HOTKEY_CHILDREN } from "../../src/common/errors";
+import { normalizeKeyCombo } from "../../src/components/hotkeys/hotkeyParser";
 
 describe("Hotkeys", () => {
     it("throws error if given non-Hotkey child", () => {
@@ -46,7 +46,7 @@ describe("Hotkeys", () => {
     });
 
     it("Decorator does not mutate the original class", () => {
-        class TestComponent extends React.Component<{}, {}> {
+        class TestComponent extends React.Component {
             public render() {
                 return <div />;
             }
@@ -56,6 +56,7 @@ describe("Hotkeys", () => {
             }
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const TargettedTestComponent = HotkeysTarget(TestComponent);
 
         // it's not the same Component
@@ -63,24 +64,27 @@ describe("Hotkeys", () => {
     });
 
     describe("Local/Global @HotkeysTarget", () => {
-        let localKeyDownSpy: SinonSpy = null;
-        let localKeyUpSpy: SinonSpy = null;
+        let localKeyDownSpy: SinonSpy;
+        let localKeyUpSpy: SinonSpy;
 
-        let globalKeyDownSpy: SinonSpy = null;
-        let globalKeyUpSpy: SinonSpy = null;
+        let globalKeyDownSpy: SinonSpy;
+        let globalKeyUpSpy: SinonSpy;
 
-        let attachTo: HTMLElement = null;
-        let comp: ReactWrapper<any, any> = null;
+        let attachTo: HTMLElement;
+        let comp: ReactWrapper<any, any>;
 
         interface ITestComponentProps {
             allowInInput?: boolean;
             disabled?: boolean;
             preventDefault?: boolean;
             stopPropagation?: boolean;
+            onKeyUp?: React.KeyboardEventHandler<HTMLElement>;
+            onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         @HotkeysTarget
-        class TestComponent extends React.Component<ITestComponentProps, {}> {
+        class TestComponent extends React.Component<ITestComponentProps> {
             public static defaultProps: ITestComponentProps = {
                 allowInInput: false,
             };
@@ -128,7 +132,7 @@ describe("Hotkeys", () => {
 
             public render() {
                 return (
-                    <div>
+                    <div onKeyUp={this.props.onKeyUp} onKeyDown={this.props.onKeyDown}>
                         <input type="text" />
                         <input type="number" />
                         <input type="password" />
@@ -174,8 +178,8 @@ describe("Hotkeys", () => {
             // wait for the dialog to animate in
             setTimeout(() => {
                 expect(document.querySelector("." + Classes.HOTKEY_COLUMN)).to.exist;
-                expect(document.querySelector("." + Classes.OVERLAY_OPEN).classList.contains(Classes.OVERLAY_INLINE)).to
-                    .be.false;
+                expect(document.querySelector("." + Classes.OVERLAY_OPEN)?.classList.contains(Classes.OVERLAY_INLINE))
+                    .to.be.false;
                 hideHotkeysDialog();
                 comp.detach();
                 attachTo.remove();
@@ -196,8 +200,8 @@ describe("Hotkeys", () => {
                 );
 
                 expect(document.querySelector("." + Classes.HOTKEY_COLUMN)).to.exist;
-                expect(document.querySelector("." + Classes.OVERLAY_OPEN).classList.contains(Classes.OVERLAY_INLINE)).to
-                    .be.false;
+                expect(document.querySelector("." + Classes.OVERLAY_OPEN)?.classList.contains(Classes.OVERLAY_INLINE))
+                    .to.be.false;
                 expect(hotkeyLabels).to.deep.equal(["sorted 1", "sorted 2", "global hotkey", "local hotkey"]);
                 hideHotkeysDialog();
                 comp.detach();
@@ -210,8 +214,9 @@ describe("Hotkeys", () => {
             const combo = "shift + x";
             const handleKeyDown = spy();
 
+            // eslint-disable-next-line deprecation/deprecation
             @HotkeysTarget
-            class ComboComponent extends React.Component<{}, {}> {
+            class ComboComponent extends React.Component {
                 public renderHotkeys() {
                     return (
                         <Hotkeys>
@@ -232,6 +237,22 @@ describe("Hotkeys", () => {
             expect(handleKeyDown.called).to.be.true;
             const testCombo = getKeyComboString(handleKeyDown.firstCall.args[0]);
             expect(testCombo).to.equal(combo);
+        });
+
+        it("invokes onKeyUp & onKeyDown props", () => {
+            const handlers = {
+                onKeyDown: spy(),
+                onKeyUp: spy(),
+            };
+
+            comp = mount(<TestComponent {...handlers} />, { attachTo });
+            const node = comp.getDOMNode();
+
+            dispatchTestKeyboardEvent(node, "keydown", "1");
+            assert.equal(handlers.onKeyDown.callCount, 1);
+            assert.equal(handlers.onKeyUp.callCount, 0);
+            dispatchTestKeyboardEvent(node, "keyup", "1");
+            assert.equal(handlers.onKeyUp.callCount, 1);
         });
 
         function runHotkeySuiteForKeyEvent(eventName: "keydown" | "keyup") {
@@ -257,10 +278,10 @@ describe("Hotkeys", () => {
                 const unhotkeyed = comp.getDOMNode().querySelector(".unhotkeyed");
                 (unhotkeyed as HTMLElement).focus();
 
-                dispatchTestKeyboardEvent(unhotkeyed, eventName, "1");
+                dispatchTestKeyboardEvent(unhotkeyed!, eventName, "1");
                 expect(getLocalSpy(eventName).called).to.be.false;
 
-                dispatchTestKeyboardEvent(unhotkeyed, eventName, "2");
+                dispatchTestKeyboardEvent(unhotkeyed!, eventName, "2");
                 expect(getGlobalSpy(eventName).called).to.be.true;
             });
 
@@ -355,10 +376,10 @@ describe("Hotkeys", () => {
 
                 (input as HTMLElement).focus();
 
-                dispatchTestKeyboardEvent(input, eventName, "1");
+                dispatchTestKeyboardEvent(input!, eventName, "1");
                 expect(getLocalSpy(eventName).called).to.equal(allowsKeys);
 
-                dispatchTestKeyboardEvent(input, eventName, "2");
+                dispatchTestKeyboardEvent(input!, eventName, "2");
                 expect(getGlobalSpy(eventName).called).to.equal(allowsKeys);
             }
         }

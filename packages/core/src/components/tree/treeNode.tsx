@@ -19,10 +19,10 @@ import * as React from "react";
 
 import * as Classes from "../../common/classes";
 import { DISPLAYNAME_PREFIX, IProps, MaybeElement } from "../../common/props";
-import { safeInvoke } from "../../common/utils";
 import { Collapse } from "../collapse/collapse";
 import { Icon, IconName } from "../icon/icon";
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export interface ITreeNode<T = {}> extends IProps {
     /**
      * Child tree nodes of this node.
@@ -57,6 +57,7 @@ export interface ITreeNode<T = {}> extends IProps {
 
     /**
      * Whether this node is selected.
+     *
      * @default false
      */
     isSelected?: boolean;
@@ -79,6 +80,7 @@ export interface ITreeNode<T = {}> extends IProps {
     nodeData?: T;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export interface ITreeNodeProps<T = {}> extends ITreeNode<T> {
     children?: React.ReactNode;
     contentRef?: (node: TreeNode<T>, element: HTMLDivElement | null) => void;
@@ -94,11 +96,12 @@ export interface ITreeNodeProps<T = {}> extends ITreeNode<T> {
     path: number[];
 }
 
-export class TreeNode<T = {}> extends React.Component<ITreeNodeProps<T>, {}> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export class TreeNode<T = {}> extends React.Component<ITreeNodeProps<T>> {
     public static displayName = `${DISPLAYNAME_PREFIX}.TreeNode`;
 
-    public static ofType<T>() {
-        return TreeNode as new (props: ITreeNodeProps<T>) => TreeNode<T>;
+    public static ofType<U>() {
+        return TreeNode as new (props: ITreeNodeProps<U>) => TreeNode<U>;
     }
 
     public render() {
@@ -166,30 +169,30 @@ export class TreeNode<T = {}> extends React.Component<ITreeNodeProps<T>, {}> {
     private handleCaretClick = (e: React.MouseEvent<HTMLElement>) => {
         e.stopPropagation();
         const { isExpanded, onCollapse, onExpand } = this.props;
-        safeInvoke(isExpanded ? onCollapse : onExpand, this, e);
+        (isExpanded ? onCollapse : onExpand)?.(this, e);
     };
 
     private handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        safeInvoke(this.props.onClick, this, e);
+        this.props.onClick?.(this, e);
     };
 
     private handleContentRef = (element: HTMLDivElement | null) => {
-        safeInvoke(this.props.contentRef, this, element);
+        this.props.contentRef?.(this, element);
     };
 
     private handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
-        safeInvoke(this.props.onContextMenu, this, e);
+        this.props.onContextMenu?.(this, e);
     };
 
     private handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        safeInvoke(this.props.onDoubleClick, this, e);
+        this.props.onDoubleClick?.(this, e);
     };
 
     private handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-        safeInvoke(this.props.onMouseEnter, this, e);
+        this.props.onMouseEnter?.(this, e);
     };
 
     private handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-        safeInvoke(this.props.onMouseLeave, this, e);
+        this.props.onMouseLeave?.(this, e);
     };
 }

@@ -15,7 +15,7 @@
  */
 
 import { expect } from "chai";
-import React from "react";
+import * as React from "react";
 import sinon from "sinon";
 
 import { IFocusedCellCoordinates } from "../src/common/cell";
@@ -348,9 +348,7 @@ describe("DragSelectable", () => {
 
             // be sure to test "click"s as sequentional "mousedown"-"mouseup"s, because those
             // are the events we actually listen for deep in DragEvents.
-            getItem(component)
-                .mouse("mousedown")
-                .mouse("mouseup");
+            getItem(component).mouse("mousedown").mouse("mouseup");
 
             expect(onSelectionEnd.calledOnce).to.be.true;
             expect(onSelectionEnd.firstCall.args[0] === selectedRegions).to.be.true; // check for same instance
@@ -475,9 +473,7 @@ describe("DragSelectable", () => {
                 selectedRegions: [REGION],
             });
 
-            getItem(component)
-                .mouse("mousedown")
-                .mouse("mousemove");
+            getItem(component).mouse("mousedown").mouse("mousemove");
 
             expect(onSelection.calledTwice, "calls onSelection on mousemove").to.be.true;
             expect(
@@ -486,7 +482,6 @@ describe("DragSelectable", () => {
             ).to.be.true;
         });
 
-        // tslint:disable-next-line:max-line-length
         it("if enableMultipleSelection=false, moves selection (and focused cell) instead of expanding it", () => {
             locateClick.onCall(0).returns(REGION_2);
             locateClick.onCall(1).returns(REGION_3);
@@ -496,9 +491,7 @@ describe("DragSelectable", () => {
                 selectedRegions: [REGION],
             });
 
-            getItem(component)
-                .mouse("mousedown")
-                .mouse("mousemove");
+            getItem(component).mouse("mousedown").mouse("mousemove");
 
             expect(locateClick.calledTwice, "calls locateClick on mousemove").to.be.true;
             expect(locateDrag.called, "doesn't call locateDrag on mousemove").to.be.false;
@@ -539,7 +532,9 @@ describe("DragSelectable", () => {
         it("triggered when a region receives mousedown with requireMetaKeyToDeselect=true", () => {
             locateDrag.returns(REGION); // different from the locateClick region
 
-            const component = mountDragSelectable({ selectedRegions: [REGION_2, REGION, REGION_3] });
+            const component = mountDragSelectable({
+                selectedRegions: [REGION_2, REGION, REGION_3],
+            });
             const item = getItem(component);
 
             item.mouse("mousedown");
@@ -551,7 +546,9 @@ describe("DragSelectable", () => {
         it("isn't triggered when one of multiple selected regions received mousedown", () => {
             locateDrag.returns(REGION); // different from the locateClick region
 
-            const component = mountDragSelectable({ selectedRegions: [REGION_2, REGION, REGION_3] });
+            const component = mountDragSelectable({
+                selectedRegions: [REGION_2, REGION, REGION_3],
+            });
             const item = getItem(component);
 
             item.mouse("mousedown");
@@ -577,17 +574,14 @@ describe("DragSelectable", () => {
 
             const component = mountDragSelectable({ onSelectionEnd, selectedRegions });
 
-            getItem(component)
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            getItem(component).mouse("mousedown").mouse("mousemove").mouse("mouseup");
 
             expect(onSelectionEnd.calledOnce).to.be.true;
             expect(onSelectionEnd.firstCall.args[0] === selectedRegions).to.be.true;
         });
     });
 
-    function mountDragSelectable(props: Partial<IDragSelectableProps> & object = {}) {
+    function mountDragSelectable(props: Partial<IDragSelectableProps> = {}) {
         return harness.mount(
             <DragSelectable
                 enableMultipleSelection={true}

@@ -1,62 +1,66 @@
 {
-  "name": "@blueprintjs/docs-app",
-  "version": "3.17.0",
-  "description": "Blueprint Documentation Site",
-  "private": true,
-  "scripts": {
-    "bundle": "webpack --config ./webpack.config.js",
-    "clean": "rm -rf dist/*",
-    "dev": "webpack-dev-server --config ./webpack.config.js --host 0.0.0.0",
-    "dist": "cross-env NODE_ENV=production yarn bundle",
-    "lint": "run-p lint:scss lint:ts",
-    "lint:scss": "sass-lint",
-    "lint:ts": "ts-lint",
-    "lint-fix": "ts-lint --fix",
-    "test": "exit 0",
-    "verify": "run-p dist lint"
-  },
-  "dependencies": {
-    "@blueprintjs/core": "^3.17.0",
-    "@blueprintjs/datetime": "^3.10.1",
-    "@blueprintjs/docs-data": "^3.0.0",
-    "@blueprintjs/docs-theme": "^3.2.0",
-    "@blueprintjs/icons": "^3.8.0",
-    "@blueprintjs/labs": "^0.16.2",
-    "@blueprintjs/select": "^3.9.0",
-    "@blueprintjs/table": "^3.6.0",
-    "@blueprintjs/test-commons": "^0.9.0",
-    "@blueprintjs/timezone": "^3.4.0",
-    "@types/downloadjs": "^1.4.0",
-    "chroma-js": "^1.3.4",
-    "classnames": "^2.2.5",
-    "dom4": "^2.0.1",
-    "downloadjs": "^1.4.7",
-    "moment": "^2.18.1",
-    "normalize.css": "^8.0.0",
-    "popper.js": "^1.14.1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-transition-group": "^2.2.1",
-    "tslib": "^1.9.0"
-  },
-  "devDependencies": {
-    "@blueprintjs/node-build-scripts": "^0.10.0",
-    "@blueprintjs/webpack-build-scripts": "^0.8.0",
-    "@types/chroma-js": "^1.3.3",
-    "npm-run-all": "^4.1.2",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:palantir/blueprint.git",
-    "directory": "packages/docs-app"
-  },
-  "keywords": [
-    "palantir",
-    "blueprint",
-    "docs"
-  ],
-  "author": "Palantir Technologies",
-  "license": "Apache-2.0"
+    "name": "@blueprintjs/docs-app",
+    "version": "3.41.0",
+    "description": "Blueprint Documentation Site",
+    "private": true,
+    "scripts": {
+        "bundle": "webpack --config ./webpack.config.js",
+        "clean": "rm -rf dist/*",
+        "dev": "webpack-dev-server --config ./webpack.config.js --host 0.0.0.0",
+        "dist": "cross-env NODE_ENV=production yarn bundle",
+        "lint": "run-p lint:scss lint:es",
+        "lint:scss": "sass-lint",
+        "lint:es": "es-lint",
+        "lint-fix": "es-lint --fix && sass-lint --fix",
+        "test": "exit 0",
+        "verify": "run-p dist lint"
+    },
+    "dependencies": {
+        "@blueprintjs/core": "^3.41.0",
+        "@blueprintjs/datetime": "^3.21.2",
+        "@blueprintjs/docs-data": "^3.41.0",
+        "@blueprintjs/docs-theme": "^3.9.8",
+        "@blueprintjs/icons": "^3.25.1",
+        "@blueprintjs/popover2": "^0.3.3",
+        "@blueprintjs/select": "^3.15.8",
+        "@blueprintjs/table": "^3.8.26",
+        "@blueprintjs/test-commons": "^0.10.10",
+        "@blueprintjs/timezone": "^3.8.8",
+        "@documentalist/client": "~3.0.0",
+        "chroma-js": "^2.1.0",
+        "classnames": "^2.2",
+        "core-js": "^3.8.1",
+        "dom4": "^2.1.5",
+        "downloadjs": "^1.4.7",
+        "lodash-es": "^4.17.15",
+        "moment": "^2.29.1",
+        "normalize.css": "^8.0.1",
+        "popper.js": "^1.16.1",
+        "react": "^16.14.0",
+        "react-dom": "^16.14.0",
+        "react-transition-group": "^4.4.1",
+        "tslib": "~1.13.0"
+    },
+    "devDependencies": {
+        "@blueprintjs/node-build-scripts": "^1.5.0",
+        "@blueprintjs/webpack-build-scripts": "^2.0.1",
+        "@types/chroma-js": "^2.1.2",
+        "@types/downloadjs": "^1.4.2",
+        "copy-webpack-plugin": "^6.4.0",
+        "npm-run-all": "^4.1.5",
+        "webpack-cli": "^3.3.12",
+        "webpack-dev-server": "^3.11.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:palantir/blueprint.git",
+        "directory": "packages/docs-app"
+    },
+    "keywords": [
+        "palantir",
+        "blueprint",
+        "docs"
+    ],
+    "author": "Palantir Technologies",
+    "license": "Apache-2.0"
 }

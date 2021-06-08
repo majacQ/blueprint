@@ -17,8 +17,8 @@
 import { assert } from "chai";
 import { mount, ReactWrapper } from "enzyme";
 import * as React from "react";
-
 import { spy } from "sinon";
+
 import { IOverflowListProps, IOverflowListState, OverflowList } from "../../src/components/overflow-list/overflowList";
 
 type OverflowProps = IOverflowListProps<ITestItem>;
@@ -30,10 +30,10 @@ interface ITestItem {
 const IDS = [0, 1, 2, 3, 4, 5];
 const ITEMS: ITestItem[] = IDS.map(id => ({ id }));
 
-const TestItem: React.SFC<ITestItem> = () => <div style={{ width: 10, flex: "0 0 auto" }} />;
-const TestOverflow: React.SFC<{ items: ITestItem[] }> = () => <div />;
+const TestItem: React.FunctionComponent<ITestItem> = () => <div style={{ width: 10, flex: "0 0 auto" }} />;
+const TestOverflow: React.FunctionComponent<{ items: ITestItem[] }> = () => <div />;
 
-describe("<OverflowList>", function(this) {
+describe("<OverflowList>", function (this) {
     // these tests rely on DOM measurement which can be flaky, so we allow some retries
     this.retries(3);
 
@@ -47,22 +47,15 @@ describe("<OverflowList>", function(this) {
     });
 
     afterEach(() => {
-        if (wrapper !== undefined) {
-            // clean up wrapper to remove Portal element from DOM
-            wrapper.unmount();
-            wrapper.detach();
-            wrapper = undefined;
-        }
+        // clean up wrapper to remove Portal element from DOM
+        wrapper?.unmount();
+        wrapper?.detach();
         testsContainerElement.remove();
         onOverflowSpy.resetHistory();
     });
 
     it("adds className to itself", () => {
-        assert.isTrue(
-            overflowList(30, { className: "winner" })
-                .find(".winner")
-                .exists(),
-        );
+        assert.isTrue(overflowList(30, { className: "winner" }).find(".winner").exists());
     });
 
     it("uses custom tagName", () => {
@@ -212,7 +205,10 @@ describe("<OverflowList>", function(this) {
 
         /** Asserts that the last call to `onOverflow` received the given item IDs. */
         wrapper.assertLastOnOverflowArgs = (ids: number[]) => {
-            assert.sameMembers(onOverflowSpy.lastCall.args[0].map((i: ITestItem) => i.id), ids);
+            assert.sameMembers(
+                onOverflowSpy.lastCall.args[0].map((i: ITestItem) => i.id),
+                ids,
+            );
             return wrapper;
         };
 
@@ -229,7 +225,11 @@ describe("<OverflowList>", function(this) {
         /** Assert ordered IDs of overflow items. */
         wrapper.assertOverflowItems = (...ids: number[]) => {
             const overflowItems = wrapper.find(TestOverflow).prop("items");
-            assert.sameMembers(overflowItems.map(it => it.id), ids, "overflow items");
+            assert.sameMembers(
+                overflowItems.map(it => it.id),
+                ids,
+                "overflow items",
+            );
             return wrapper;
         };
 

@@ -70,16 +70,12 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
             expect(callbacks.onReordering.called).to.be.false;
             expect(callbacks.onReordered.called).to.be.false;
             expect(callbacks.onSelection.called).to.be.false;
         });
 
-        // tslint:disable-next-line:max-line-length
         it("an existing selection contains the clicked region but has a different cardinality (e.g. FULL_TABLE)", () => {
             const callbacks = initCallbackStubs();
             callbacks.locateClick.returns(Regions.column(OLD_INDEX));
@@ -92,10 +88,7 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
             expect(callbacks.onReordering.called).to.be.false;
             expect(callbacks.onReordered.called).to.be.false;
             expect(callbacks.onSelection.called).to.be.false;
@@ -118,10 +111,7 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
             expect(callbacks.onReordering.called).to.be.false;
             expect(callbacks.onReordered.called).to.be.false;
             expect(callbacks.onSelection.called).to.be.false;
@@ -141,10 +131,7 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
             expect(callbacks.onReordering.called).to.be.true;
             expect(callbacks.onReordered.called).to.be.true;
             expect(callbacks.onSelection.called).to.be.true;
@@ -270,10 +257,7 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
             expect(callbacks.onSelection.called).to.be.false;
             expect(callbacks.onFocusedCell.called).to.be.false;
         });
@@ -324,10 +308,7 @@ describe("DragReorderable", () => {
             );
             const element = reorderable.find(ELEMENT_SELECTOR, OLD_INDEX);
 
-            element
-                .mouse("mousedown")
-                .mouse("mousemove")
-                .mouse("mouseup");
+            element.mouse("mousedown").mouse("mousemove").mouse("mouseup");
 
             // called once on mousedown and again on mouseup
             expect(callbacks.onFocusedCell.calledTwice).to.be.true;

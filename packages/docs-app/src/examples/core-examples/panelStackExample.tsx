@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
+/* eslint-disable deprecation/deprecation, max-classes-per-file */
+
 import * as React from "react";
 
-import { Button, H5, Intent, IPanel, IPanelProps, PanelStack, Switch, UL } from "@blueprintjs/core";
+import { Button, H5, Intent, IPanel, IPanelProps, NumericInput, PanelStack, Switch, UL } from "@blueprintjs/core";
 import { Example, handleBooleanChange, IExampleProps } from "@blueprintjs/docs-theme";
 
 export interface IPanelStackExampleState {
-    currentPanelStack: IPanel[];
+    activePanelOnly: boolean;
+    currentPanelStack: Array<IPanel<IPanelExampleProps>>;
     showHeader: boolean;
 }
 
 export class PanelStackExample extends React.PureComponent<IExampleProps, IPanelStackExampleState> {
-    public initialPanel: IPanel = {
+    public initialPanel: IPanel<IPanelExampleProps> = {
         component: PanelExample,
         props: {
             panelNumber: 1,
@@ -34,15 +37,23 @@ export class PanelStackExample extends React.PureComponent<IExampleProps, IPanel
     };
 
     public state = {
+        activePanelOnly: true,
         currentPanelStack: [this.initialPanel],
         showHeader: true,
     };
+
+    private toggleActiveOnly = handleBooleanChange((activePanelOnly: boolean) => this.setState({ activePanelOnly }));
 
     private handleHeaderChange = handleBooleanChange((showHeader: boolean) => this.setState({ showHeader }));
 
     public render() {
         const stackList = (
             <>
+                <Switch
+                    checked={this.state.activePanelOnly}
+                    label="Render active panel only"
+                    onChange={this.toggleActiveOnly}
+                />
                 <Switch checked={this.state.showHeader} label="Show panel header" onChange={this.handleHeaderChange} />
                 <H5>Current stack</H5>
                 <UL>
@@ -59,6 +70,7 @@ export class PanelStackExample extends React.PureComponent<IExampleProps, IPanel
                     initialPanel={this.state.currentPanelStack[0]}
                     onOpen={this.addToPanelStack}
                     onClose={this.removeFromPanelStack}
+                    renderActivePanelOnly={this.state.activePanelOnly}
                     showPanelHeader={this.state.showHeader}
                 />
             </Example>
@@ -66,7 +78,10 @@ export class PanelStackExample extends React.PureComponent<IExampleProps, IPanel
     }
 
     private addToPanelStack = (newPanel: IPanel) => {
-        this.setState(state => ({ currentPanelStack: [newPanel, ...state.currentPanelStack] }));
+        this.setState(state => ({
+            // HACKHACK: https://github.com/palantir/blueprint/issues/4272
+            currentPanelStack: [(newPanel as unknown) as IPanel<IPanelExampleProps>, ...state.currentPanelStack],
+        }));
     };
 
     private removeFromPanelStack = (_lastPanel: IPanel) => {
@@ -80,12 +95,20 @@ interface IPanelExampleProps {
     panelNumber: number;
 }
 
-// tslint:disable-next-line:max-classes-per-file
-class PanelExample extends React.PureComponent<IPanelProps & IPanelExampleProps> {
+interface IPanelExampleState {
+    counter: number;
+}
+
+class PanelExample extends React.PureComponent<IPanelExampleProps & IPanelProps> {
+    public state: IPanelExampleState = {
+        counter: 0,
+    };
+
     public render() {
         return (
             <div className="docs-panel-stack-contents-example">
                 <Button intent={Intent.PRIMARY} onClick={this.openNewPanel} text="Open new panel" />
+                <NumericInput value={this.state.counter} stepSize={1} onValueChange={this.updateCounter} />
             </div>
         );
     }
@@ -97,5 +120,9 @@ class PanelExample extends React.PureComponent<IPanelProps & IPanelExampleProps>
             props: { panelNumber },
             title: `Panel ${panelNumber}`,
         });
+    };
+
+    private updateCounter = (counter: number) => {
+        this.setState({ counter });
     };
 }

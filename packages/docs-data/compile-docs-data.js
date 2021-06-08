@@ -34,8 +34,11 @@ const DOCS_DATA_PATH = path.join(GENERATED_SRC_DIR, "docs.json");
         // console.error messages get swallowed by lerna but console.log is emitted to terminal.
         console.log(`[docs-data] ERROR when generating JSON docs data:`);
         console.log(err);
-        throw err;
+        process.exit(1);
     }
+
+    console.log(`[docs-data] successfully generated docs.json`);
+    process.exit(0);
 })();
 
 /**
@@ -69,7 +72,7 @@ function transformDocumentalistData(key, value) {
         // one major version per release
         const majors = new Map();
         for (const version of value) {
-            const major = semver.major(version)
+            const major = semver.major(version);
             if (!majors.has(major) || semver.gt(version, majors.get(major))) {
                 majors.set(major, version);
             }
@@ -77,8 +80,7 @@ function transformDocumentalistData(key, value) {
         // reverse the list so highest version is first (easier indexing)
         return Array.from(majors.values()).reverse();
     }
-    // remove all class declarations as they're currently unused and only increase bundle size
-    if (value != null && value.kind !== "class") {
+    if (value != null) {
         return replaceNS(value);
     }
     return undefined;
@@ -86,7 +88,5 @@ function transformDocumentalistData(key, value) {
 
 /** @param {any} text replace `#{$ns}` with Blueprint class namespace. if not a string, simply returns `text`. */
 function replaceNS(text) {
-    return typeof text === "string"
-        ? text.replace(/#{\$ns}|@ns/g, Classes.getClassNamespace())
-        : text;
+    return typeof text === "string" ? text.replace(/#{\$ns}|@ns/g, Classes.getClassNamespace()) : text;
 }

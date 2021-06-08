@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-// tslint:disable max-classes-per-file
+/* eslint-disable max-classes-per-file */
 
 import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 import { spy } from "sinon";
 
-import { Classes, ContextMenu, ContextMenuTarget, Menu, MenuItem } from "../../src/index";
+import { Classes, ContextMenu, ContextMenuTarget, Menu, MenuItem } from "../../src";
 
 const MENU_ITEMS = [
     <MenuItem key="left" icon="align-left" text="Align Left" />,
@@ -35,7 +35,7 @@ describe("ContextMenu", () => {
     afterEach(() => ContextMenu.hide());
 
     it("Decorator does not mutate the original class", () => {
-        class TestComponent extends React.Component<{}, {}> {
+        class TestComponent extends React.Component {
             public render() {
                 return <div />;
             }
@@ -45,6 +45,7 @@ describe("ContextMenu", () => {
             }
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const TargettedTestComponent = ContextMenuTarget(TestComponent);
 
         // it's not the same Component
@@ -67,7 +68,7 @@ describe("ContextMenu", () => {
         setTimeout(() => {
             assert.isTrue(document.querySelector(`.${Classes.CONTEXT_MENU}`) == null);
             done();
-        }, 110);
+        }, 200);
     });
 
     it("does not invoke previous onClose callback", () => {
@@ -94,17 +95,14 @@ describe("ContextMenu", () => {
             rightClickMe.simulate("contextmenu");
             assertContextMenuWasRendered();
 
-            rightClickMe
-                .find(RightClickMe)
-                .last()
-                .simulate("contextmenu");
+            rightClickMe.find(RightClickMe).last().simulate("contextmenu");
             assertContextMenuWasRendered(childItems.length);
         });
 
         /* -- uncomment this test to confirm compilation failure -- */
         // it("TypeScript compilation fails if decorated class does not implement renderContextMenu", () => {
         //     @ContextMenuTarget
-        //     return class TypeScriptFail extends React.Component<{}, {}> {
+        //     return class TypeScriptFail extends React.Component {
         //         public render() { return <article />; }
         //     }
         // });
@@ -121,12 +119,13 @@ function assertContextMenuWasRendered(expectedLength = MENU_ITEMS.length) {
     // popover is rendered in a Portal
     const popover = getPopover();
     assert.isNotNull(popover);
-    const menuItems = popover.querySelectorAll(`.${Classes.MENU_ITEM}`);
+    const menuItems = popover!.querySelectorAll(`.${Classes.MENU_ITEM}`);
     assert.lengthOf(menuItems, expectedLength);
 }
 
+// eslint-disable-next-line deprecation/deprecation
 @ContextMenuTarget
-class RightClickMe extends React.Component<{ items?: JSX.Element[] }, {}> {
+class RightClickMe extends React.Component<{ items?: JSX.Element[] }> {
     public static defaultProps = {
         items: MENU_ITEMS,
     };

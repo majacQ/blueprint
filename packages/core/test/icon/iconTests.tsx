@@ -20,7 +20,7 @@ import * as React from "react";
 
 import { IconName } from "@blueprintjs/icons";
 
-import { Classes, Icon, IIconProps, Intent } from "../../src/index";
+import { Classes, Icon, IIconProps, Intent } from "../../src";
 
 describe("<Icon>", () => {
     it("tagName dictates HTML tag", () => {
@@ -55,6 +55,7 @@ describe("<Icon>", () => {
     });
 
     it("prefixed icon renders blank icon", () => {
+        // eslint-disable-next-line deprecation/deprecation
         assert.lengthOf(shallow(<Icon icon={Classes.iconClass("airplane") as any} />).find("path"), 0);
     });
 

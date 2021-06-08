@@ -21,9 +21,9 @@ import * as sinon from "sinon";
 
 import { expectPropValidationError } from "@blueprintjs/test-commons";
 
+import { Classes, RangeSlider } from "../../src";
 import { ARROW_DOWN } from "../../src/common/keys";
 import { Handle } from "../../src/components/slider/handle";
-import { Classes, RangeSlider } from "../../src/index";
 
 const STEP_SIZE = 20;
 
@@ -54,8 +54,14 @@ describe("<RangeSlider>", () => {
     });
 
     it("throws error if range value contains null", () => {
-        expectPropValidationError(RangeSlider, { value: [null, 5] });
-        expectPropValidationError(RangeSlider, { value: [100, null] });
+        expectPropValidationError(RangeSlider, {
+            // @ts-expect-error
+            value: [null, 5],
+        });
+        expectPropValidationError(RangeSlider, {
+            // @ts-expect-error
+            value: [100, null],
+        });
     });
 
     it("disabled slider does not respond to key presses", () => {

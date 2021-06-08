@@ -15,12 +15,16 @@
  */
 
 import * as React from "react";
+
 import { isNodeEnv } from "./utils";
 
 /**
  * An abstract component that Blueprint components can extend
  * in order to add some common functionality like runtime props validation.
+ *
+ * @deprecated componentWillReceiveProps is deprecated in React 16.9; use AbstractPureComponent2 instead
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export abstract class AbstractPureComponent<P, S = {}> extends React.PureComponent<P, S> {
     /** Component displayName should be `public static`. This property exists to prevent incorrect usage. */
     protected displayName: never;
@@ -28,7 +32,7 @@ export abstract class AbstractPureComponent<P, S = {}> extends React.PureCompone
     // Not bothering to remove entries when their timeouts finish because clearing invalid ID is a no-op
     private timeoutIds: number[] = [];
 
-    constructor(props?: P, context?: any) {
+    constructor(props: P, context?: any) {
         super(props, context);
         if (!isNodeEnv("production")) {
             this.validateProps(this.props);
@@ -48,6 +52,7 @@ export abstract class AbstractPureComponent<P, S = {}> extends React.PureCompone
     /**
      * Set a timeout and remember its ID.
      * All stored timeouts will be cleared when component unmounts.
+     *
      * @returns a "cancel" function that will clear timeout when invoked.
      */
     public setTimeout(callback: () => void, timeout?: number) {
@@ -77,7 +82,7 @@ export abstract class AbstractPureComponent<P, S = {}> extends React.PureCompone
      * [propTypes](https://facebook.github.io/react/docs/reusable-components.html#prop-validation) feature.
      * Like propTypes, these runtime checks run only in development mode.
      */
-    protected validateProps(_: P & { children?: React.ReactNode }) {
+    protected validateProps(_props: P & { children?: React.ReactNode }) {
         // implement in subclass
     }
 }

@@ -1,4 +1,35 @@
 {
+  <<<<<<< excavator/policy-bot-oss-shadow
+    "name": "@blueprintjs/docs-data",
+    "version": "3.41.0",
+    "main": "src/index.js",
+    "types": "src/index.d.ts",
+    "private": true,
+    "scripts": {
+        "clean": "rm -rf src/generated/*",
+        "compile": "node ./compile-docs-data.js",
+        "test": "exit 0"
+    },
+    "dependencies": {
+        "@blueprintjs/core": "^3.41.0",
+        "@blueprintjs/docs-theme": "^3.9.8",
+        "@documentalist/compiler": "~3.0.0",
+        "better-handlebars": "github:wmeldon/better-handlebars",
+        "glob": "^7.1.6",
+        "highlights": "^3.1.4",
+        "language-less": "github:atom/language-less",
+        "marked": "^1.2.5",
+        "semver": "^7.3.4",
+        "tree-sitter-typescript": "~0.16.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:palantir/blueprint.git",
+        "directory": "packages/docs-data"
+    },
+    "author": "Palantir Technologies",
+    "license": "Apache-2.0"
+  =======
   "name": "@blueprintjs/docs-data",
   "version": "3.15.0",
   "main": "src/index.js",
@@ -28,4 +59,5 @@
   },
   "author": "Palantir Technologies",
   "license": "Apache-2.0"
+  >>>>>>> release/3.17.x
 }

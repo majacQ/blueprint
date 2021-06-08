@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { H5, Switch } from "@blueprintjs/core";
-import { DateRange, DateRangeInput, IDateFormatProps } from "@blueprintjs/datetime";
-import { Example, handleBooleanChange, IExampleProps } from "@blueprintjs/docs-theme";
 import * as React from "react";
+
+import { H5, Switch } from "@blueprintjs/core";
+import { DateRange, DateRangeInput, IDateFormatProps, TimePrecision } from "@blueprintjs/datetime";
+import { Example, handleBooleanChange, IExampleProps } from "@blueprintjs/docs-theme";
 
 import { FORMATS, FormatSelect } from "./common/formatSelect";
 import { MomentDateRange } from "./common/momentDate";
@@ -27,12 +28,14 @@ export interface IDateRangeInputExampleState {
     closeOnSelection: boolean;
     contiguousCalendarMonths: boolean;
     disabled: boolean;
+    enableTimePicker: boolean;
     format: IDateFormatProps;
     range: DateRange;
     reverseMonthAndYearMenus: boolean;
     selectAllOnFocus: boolean;
     shortcuts: boolean;
     singleMonthOnly: boolean;
+    showTimeArrowButtons: boolean;
 }
 
 export class DateRangeInputExample extends React.PureComponent<IExampleProps, IDateRangeInputExampleState> {
@@ -41,32 +44,56 @@ export class DateRangeInputExample extends React.PureComponent<IExampleProps, ID
         closeOnSelection: false,
         contiguousCalendarMonths: true,
         disabled: false,
+        enableTimePicker: false,
         format: FORMATS[0],
         range: [null, null],
         reverseMonthAndYearMenus: false,
         selectAllOnFocus: false,
         shortcuts: true,
+        showTimeArrowButtons: false,
         singleMonthOnly: false,
     };
 
     private toggleContiguous = handleBooleanChange(contiguous => {
         this.setState({ contiguousCalendarMonths: contiguous });
     });
+
     private toggleDisabled = handleBooleanChange(disabled => this.setState({ disabled }));
+
     private toggleReverseMonthAndYearMenus = handleBooleanChange(reverseMonthAndYearMenus =>
         this.setState({ reverseMonthAndYearMenus }),
     );
+
     private toggleSelection = handleBooleanChange(closeOnSelection => this.setState({ closeOnSelection }));
+
     private toggleSelectAllOnFocus = handleBooleanChange(selectAllOnFocus => this.setState({ selectAllOnFocus }));
+
     private toggleSingleDay = handleBooleanChange(allowSingleDayRange => this.setState({ allowSingleDayRange }));
+
     private toggleSingleMonth = handleBooleanChange(singleMonthOnly => this.setState({ singleMonthOnly }));
+
     private toggleShortcuts = handleBooleanChange(shortcuts => this.setState({ shortcuts }));
 
+    private toggleTimePicker = handleBooleanChange(enableTimePicker => this.setState({ enableTimePicker }));
+
+    private toggleTimepickerArrowButtons = handleBooleanChange(showTimeArrowButtons =>
+        this.setState({ showTimeArrowButtons }),
+    );
+
     public render() {
-        const { format, range, ...spreadProps } = this.state;
+        const { enableTimePicker, format, range, showTimeArrowButtons, ...spreadProps } = this.state;
         return (
             <Example options={this.renderOptions()} {...this.props}>
-                <DateRangeInput {...spreadProps} {...format} onChange={this.handleRangeChange} />
+                <DateRangeInput
+                    {...spreadProps}
+                    {...format}
+                    onChange={this.handleRangeChange}
+                    timePickerProps={
+                        enableTimePicker
+                            ? { precision: TimePrecision.MINUTE, showArrowButtons: showTimeArrowButtons }
+                            : undefined
+                    }
+                />
                 <MomentDateRange range={range} />
             </Example>
         );
@@ -108,11 +135,23 @@ export class DateRangeInputExample extends React.PureComponent<IExampleProps, ID
                     label="Reverse month and year menus"
                     onChange={this.toggleReverseMonthAndYearMenus}
                 />
+                <Switch
+                    checked={this.state.enableTimePicker}
+                    label="Enable time picker"
+                    onChange={this.toggleTimePicker}
+                />
+                <Switch
+                    disabled={!this.state.enableTimePicker}
+                    checked={this.state.showTimeArrowButtons}
+                    label="Show timepicker arrow buttons"
+                    onChange={this.toggleTimepickerArrowButtons}
+                />
                 <FormatSelect key="Format" format={this.state.format} onChange={this.handleFormatChange} />
             </>
         );
     }
 
     private handleFormatChange = (format: IDateFormatProps) => this.setState({ format });
+
     private handleRangeChange = (range: DateRange) => this.setState({ range });
 }

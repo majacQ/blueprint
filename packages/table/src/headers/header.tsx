@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-import { Icon, Utils as CoreUtils } from "@blueprintjs/core";
 import classNames from "classnames";
 import * as React from "react";
+
+import { Icon, Utils as CoreUtils } from "@blueprintjs/core";
 
 import { Grid } from "../common";
 import { IFocusedCellCoordinates } from "../common/cell";
 import * as Classes from "../common/classes";
+import { CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT } from "../common/utils";
 import { DragEvents } from "../interactions/dragEvents";
-import { IClientCoordinates, ICoordinateData } from "../interactions/draggable";
+import { IClientCoordinates, ICoordinateData } from "../interactions/dragTypes";
 import { DragReorderable, IReorderableProps } from "../interactions/reorderable";
 import { Resizable } from "../interactions/resizable";
 import { ILockableLayout, Orientation } from "../interactions/resizeHandle";
@@ -47,6 +49,7 @@ export interface IHeaderProps extends ILockableLayout, IReorderableProps, ISelec
 
     /**
      * Enables/disables the reordering interaction.
+     *
      * @internal
      * @default false
      */
@@ -54,6 +57,7 @@ export interface IHeaderProps extends ILockableLayout, IReorderableProps, ISelec
 
     /**
      * Enables/disables the resize interaction.
+     *
      * @default true
      */
     isResizable?: boolean;
@@ -66,6 +70,7 @@ export interface IHeaderProps extends ILockableLayout, IReorderableProps, ISelec
     /**
      * If true, all header cells render their loading state except for those
      * who have their `loading` prop explicitly set to false.
+     *
      * @default false;
      */
     loading?: boolean;
@@ -229,7 +234,7 @@ export interface IHeaderState {
     hasValidSelection?: boolean;
 }
 
-const SHALLOW_COMPARE_PROP_KEYS_BLACKLIST: Array<keyof IInternalHeaderProps> = ["focusedCell", "selectedRegions"];
+const SHALLOW_COMPARE_PROP_KEYS_DENYLIST: Array<keyof IInternalHeaderProps> = ["focusedCell", "selectedRegions"];
 
 export class Header extends React.Component<IInternalHeaderProps, IHeaderState> {
     protected activationIndex: number;
@@ -239,15 +244,20 @@ export class Header extends React.Component<IInternalHeaderProps, IHeaderState> 
         this.state = { hasValidSelection: this.isSelectedRegionsControlledAndNonEmpty(props) };
     }
 
-    public componentWillReceiveProps(nextProps?: IInternalHeaderProps) {
-        this.setState({ hasValidSelection: this.isSelectedRegionsControlledAndNonEmpty(nextProps) });
+    public componentDidUpdate(_: IInternalHeaderProps, prevState: IHeaderState) {
+        const nextHasValidSection = this.isSelectedRegionsControlledAndNonEmpty(this.props);
+        if (prevState.hasValidSelection !== nextHasValidSection) {
+            this.setState({ hasValidSelection: nextHasValidSection });
+        }
     }
 
     public shouldComponentUpdate(nextProps?: IInternalHeaderProps, nextState?: IHeaderState) {
         return (
             !CoreUtils.shallowCompareKeys(this.state, nextState) ||
-            !CoreUtils.shallowCompareKeys(this.props, nextProps, { exclude: SHALLOW_COMPARE_PROP_KEYS_BLACKLIST }) ||
-            !CoreUtils.deepCompareKeys(this.props, nextProps, SHALLOW_COMPARE_PROP_KEYS_BLACKLIST)
+            !CoreUtils.shallowCompareKeys(this.props, nextProps, {
+                exclude: SHALLOW_COMPARE_PROP_KEYS_DENYLIST,
+            }) ||
+            !CoreUtils.deepCompareKeys(this.props, nextProps, SHALLOW_COMPARE_PROP_KEYS_DENYLIST)
         );
     }
 
@@ -303,6 +313,9 @@ export class Header extends React.Component<IInternalHeaderProps, IHeaderState> 
         const { getIndexClass, selectedRegions } = this.props;
 
         const cell = this.props.headerCellRenderer(index);
+        if (cell == null) {
+            return null;
+        }
 
         const isLoading = cell.props.loading != null ? cell.props.loading : this.props.loading;
         const isSelected = this.props.isCellSelected(index);
@@ -328,8 +341,7 @@ export class Header extends React.Component<IInternalHeaderProps, IHeaderState> 
 
         const modifiedHandleSizeChanged = (size: number) => this.props.handleSizeChanged(index, size);
         const modifiedHandleResizeEnd = (size: number) => this.props.handleResizeEnd(index, size);
-        const modifiedHandleResizeHandleDoubleClick = () =>
-            CoreUtils.safeInvoke(this.props.handleResizeDoubleClick, index);
+        const modifiedHandleResizeHandleDoubleClick = () => this.props.handleResizeDoubleClick?.(index);
 
         const baseChildren = (
             <DragSelectable
@@ -350,9 +362,12 @@ export class Header extends React.Component<IInternalHeaderProps, IHeaderState> 
                     isResizable={this.props.isResizable}
                     maxSize={this.props.maxSize}
                     minSize={this.props.minSize}
+                    // eslint-disable-next-line react/jsx-no-bind
                     onDoubleClick={modifiedHandleResizeHandleDoubleClick}
                     onLayoutLock={this.props.onLayoutLock}
+                    // eslint-disable-next-line react/jsx-no-bind
                     onResizeEnd={modifiedHandleResizeEnd}
+                    // eslint-disable-next-line react/jsx-no-bind
                     onSizeChanged={modifiedHandleSizeChanged}
                     orientation={this.props.resizeOrientation}
                     size={this.props.getCellSize(index)}
@@ -378,7 +393,9 @@ export class Header extends React.Component<IInternalHeaderProps, IHeaderState> 
             : this.wrapInDragReorderable(
                   index,
                   <div className={Classes.TABLE_REORDER_HANDLE_TARGET}>
-                      <div className={Classes.TABLE_REORDER_HANDLE}>
+                      <div
+                          className={classNames(Classes.TABLE_REORDER_HANDLE, CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT)}
+                      >
                           <Icon icon="drag-handle-vertical" />
                       </div>
                   </div>,

@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
+// we are testing a deprecated component
+/* eslint-disable deprecation/deprecation */
+
 import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { Classes, DatePicker, TimePicker } from "../src";
 import { DateTimePicker } from "../src/dateTimePicker";
-import { Classes, DatePicker, TimePicker } from "../src/index";
 
 describe("<DateTimePicker>", () => {
     it("renders a DatePicker and a TimePicker", () => {
@@ -65,9 +68,7 @@ describe("<DateTimePicker>", () => {
             />,
         );
         assert.isTrue(onChangeSpy.notCalled);
-        root.find(`.${Classes.TIMEPICKER_ARROW_BUTTON}.${Classes.TIMEPICKER_HOUR}`)
-            .first()
-            .simulate("click");
+        root.find(`.${Classes.TIMEPICKER_ARROW_BUTTON}.${Classes.TIMEPICKER_HOUR}`).first().simulate("click");
         assert.isTrue(onChangeSpy.calledOnce);
         assert.deepEqual(onChangeSpy.firstCall.args[0], new Date(2012, 2, 5, 7, 5, 40));
     });
@@ -89,9 +90,7 @@ describe("<DateTimePicker>", () => {
             <DateTimePicker defaultValue={defaultValue} timePickerProps={{ showArrowButtons: true }} />,
         );
         getDay(5).simulate("click");
-        root.find(`.${Classes.TIMEPICKER_ARROW_BUTTON}.${Classes.TIMEPICKER_HOUR}`)
-            .first()
-            .simulate("click");
+        root.find(`.${Classes.TIMEPICKER_ARROW_BUTTON}.${Classes.TIMEPICKER_HOUR}`).first().simulate("click");
         getDay(15).simulate("click");
         assert.equal(root.state("timeValue").getHours(), defaultValue.getHours() + 1);
         assert.equal(root.state("timeValue").getMinutes(), defaultValue.getMinutes());
@@ -109,6 +108,7 @@ describe("<DateTimePicker>", () => {
                 const { root, getSelectedDay } = wrap(<DateTimePicker value={defaultValue} />);
                 assert.isTrue(getSelectedDay().exists());
                 root.setProps({ value });
+                root.update();
                 assert.isFalse(getSelectedDay().exists());
             });
         }

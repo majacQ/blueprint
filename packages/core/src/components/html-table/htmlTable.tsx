@@ -16,15 +16,9 @@
 
 import classNames from "classnames";
 import * as React from "react";
-import {
-    HTML_TABLE,
-    HTML_TABLE_BORDERED,
-    HTML_TABLE_CONDENSED,
-    HTML_TABLE_STRIPED,
-    INTERACTIVE,
-    SMALL,
-} from "../../common/classes";
-import { IElementRefProps } from "../html/html";
+import { polyfill } from "react-lifecycles-compat";
+
+import { AbstractPureComponent2, Classes, IElementRefProps } from "../../common";
 
 export interface IHTMLTableProps
     extends React.TableHTMLAttributes<HTMLTableElement>,
@@ -40,6 +34,7 @@ export interface IHTMLTableProps
 
     /**
      * Use small, condensed appearance for this element and all child elements.
+     *
      * @deprecated
      */
     small?: boolean;
@@ -50,21 +45,23 @@ export interface IHTMLTableProps
 
 // this component is simple enough that tests would be purely tautological.
 /* istanbul ignore next */
-export class HTMLTable extends React.PureComponent<IHTMLTableProps> {
+@polyfill
+export class HTMLTable extends AbstractPureComponent2<IHTMLTableProps> {
     public render() {
+        // eslint-disable-next-line deprecation/deprecation
         const { bordered, className, condensed, elementRef, interactive, small, striped, ...htmlProps } = this.props;
         const classes = classNames(
-            HTML_TABLE,
+            Classes.HTML_TABLE,
             {
-                [HTML_TABLE_BORDERED]: bordered,
-                [HTML_TABLE_CONDENSED]: condensed,
-                [HTML_TABLE_STRIPED]: striped,
-                [INTERACTIVE]: interactive,
-                [SMALL]: small,
+                [Classes.HTML_TABLE_BORDERED]: bordered,
+                [Classes.HTML_TABLE_CONDENSED]: condensed,
+                [Classes.HTML_TABLE_STRIPED]: striped,
+                [Classes.INTERACTIVE]: interactive,
+                [Classes.SMALL]: small,
             },
             className,
         );
-        // tslint:disable-next-line:blueprint-html-components
+        // eslint-disable-next-line @blueprintjs/html-components
         return <table {...htmlProps} ref={elementRef} className={classes} />;
     }
 }

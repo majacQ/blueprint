@@ -15,24 +15,27 @@
  */
 
 import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
 
-import { Classes } from "../../common";
+import { AbstractPureComponent2, Classes } from "../../common";
 import { Button } from "../button/buttons";
 import { Text } from "../text/text";
 import { IPanel } from "./panelProps";
+
+/* eslint-disable deprecation/deprecation */
 
 export interface IPanelViewProps {
     /**
      * Callback invoked when the user presses the back button or a panel invokes
      * the `closePanel()` injected prop method.
      */
-    onClose: (removedPanel: IPanel) => void;
+    onClose: (removedPanel: IPanel<any>) => void;
 
     /**
      * Callback invoked when a panel invokes the `openPanel(panel)` injected
      * prop method.
      */
-    onOpen: (addedPanel: IPanel) => void;
+    onOpen: (addedPanel: IPanel<any>) => void;
 
     /** The panel to be displayed. */
     panel: IPanel;
@@ -44,7 +47,8 @@ export interface IPanelViewProps {
     showHeader: boolean;
 }
 
-export class PanelView extends React.PureComponent<IPanelViewProps> {
+@polyfill
+export class PanelView extends AbstractPureComponent2<IPanelViewProps> {
     public render() {
         const { panel, onOpen } = this.props;
         // two <span> tags in header ensure title is centered as long as
@@ -64,7 +68,7 @@ export class PanelView extends React.PureComponent<IPanelViewProps> {
         return (
             <div className={Classes.PANEL_STACK_HEADER}>
                 <span>{this.maybeRenderBack()}</span>
-                <Text className={Classes.HEADING} ellipsize={true}>
+                <Text className={Classes.HEADING} ellipsize={true} title={this.props.panel.htmlTitle}>
                     {this.props.panel.title}
                 </Text>
                 <span />
@@ -84,6 +88,7 @@ export class PanelView extends React.PureComponent<IPanelViewProps> {
                 onClick={this.handleClose}
                 small={true}
                 text={this.props.previousPanel.title}
+                title={this.props.previousPanel.htmlTitle}
             />
         );
     }

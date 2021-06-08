@@ -15,15 +15,17 @@
  */
 
 import classNames from "classnames";
-import * as React from "react";
-
 import { Modifiers } from "popper.js";
-import * as Classes from "../../common/classes";
-import { Position } from "../../common/position";
+import * as React from "react";
+import { polyfill } from "react-lifecycles-compat";
+
+import { AbstractPureComponent2, Classes, Position } from "../../common";
 import { DISPLAYNAME_PREFIX, IActionProps, ILinkProps } from "../../common/props";
 import { Icon } from "../icon/icon";
 import { IPopoverProps, Popover, PopoverInteractionKind } from "../popover/popover";
 import { Text } from "../text/text";
+// this cyclic import can be removed in v4.0 (https://github.com/palantir/blueprint/issues/3829)
+// eslint-disable-next-line import/no-cycle
 import { Menu } from "./menu";
 
 export interface IMenuItemProps extends IActionProps, ILinkProps {
@@ -69,6 +71,7 @@ export interface IMenuItemProps extends IActionProps, ILinkProps {
     /**
      * Whether the text should be allowed to wrap to multiple lines.
      * If `false`, text will be truncated with an ellipsis when it reaches `max-width`.
+     *
      * @default false
      */
     multiline?: boolean;
@@ -82,12 +85,14 @@ export interface IMenuItemProps extends IActionProps, ILinkProps {
 
     /**
      * Whether an enabled item without a submenu should automatically close its parent popover when clicked.
+     *
      * @default true
      */
     shouldDismissPopover?: boolean;
 
     /**
      * Name of the HTML tag that wraps the MenuItem.
+     *
      * @default "a"
      */
     tagName?: keyof JSX.IntrinsicElements;
@@ -96,9 +101,15 @@ export interface IMenuItemProps extends IActionProps, ILinkProps {
      * A space-delimited list of class names to pass along to the text wrapper element.
      */
     textClassName?: string;
+
+    /**
+     * HTML title to be passed to the <Text> component
+     */
+    htmlTitle?: string;
 }
 
-export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorHTMLAttributes<HTMLAnchorElement>> {
+@polyfill
+export class MenuItem extends AbstractPureComponent2<IMenuItemProps & React.AnchorHTMLAttributes<HTMLAnchorElement>> {
     public static defaultProps: IMenuItemProps = {
         disabled: false,
         multiline: false,
@@ -106,6 +117,7 @@ export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorH
         shouldDismissPopover: true,
         text: "",
     };
+
     public static displayName = `${DISPLAYNAME_PREFIX}.MenuItem`;
 
     public render() {
@@ -116,13 +128,15 @@ export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorH
             disabled,
             icon,
             intent,
+            labelClassName,
             labelElement,
             multiline,
             popoverProps,
             shouldDismissPopover,
             text,
             textClassName,
-            tagName: TagName = "a",
+            tagName = "a",
+            htmlTitle,
             ...htmlProps
         } = this.props;
         const hasSubmenu = children != null;
@@ -141,15 +155,19 @@ export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorH
             className,
         );
 
-        const target = (
-            <TagName {...htmlProps} {...(disabled ? DISABLED_PROPS : {})} className={anchorClasses}>
-                <Icon icon={icon} />
-                <Text className={classNames(Classes.FILL, textClassName)} ellipsize={!multiline}>
-                    {text}
-                </Text>
-                {this.maybeRenderLabel(labelElement)}
-                {hasSubmenu && <Icon icon="caret-right" />}
-            </TagName>
+        const target = React.createElement(
+            tagName,
+            {
+                ...htmlProps,
+                ...(disabled ? DISABLED_PROPS : {}),
+                className: anchorClasses,
+            },
+            <Icon icon={icon} />,
+            <Text className={classNames(Classes.FILL, textClassName)} ellipsize={!multiline} title={htmlTitle}>
+                {text}
+            </Text>,
+            this.maybeRenderLabel(labelElement),
+            hasSubmenu ? <Icon icon="caret-right" /> : undefined,
         );
 
         const liClasses = classNames({ [Classes.MENU_SUBMENU]: hasSubmenu });
@@ -175,6 +193,7 @@ export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorH
         }
         const { disabled, popoverProps } = this.props;
         return (
+            /* eslint-disable-next-line deprecation/deprecation */
             <Popover
                 autoFocus={false}
                 captureDismiss={false}
@@ -188,7 +207,7 @@ export class MenuItem extends React.PureComponent<IMenuItemProps & React.AnchorH
                 {...popoverProps}
                 content={<Menu>{children}</Menu>}
                 minimal={true}
-                popoverClassName={classNames(Classes.MENU_SUBMENU, popoverProps.popoverClassName)}
+                popoverClassName={classNames(Classes.MENU_SUBMENU, popoverProps?.popoverClassName)}
                 target={target}
             />
         );

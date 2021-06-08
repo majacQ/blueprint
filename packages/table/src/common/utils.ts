@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-const CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT = "bp-table-text-no-measure";
+import { Icon } from "@blueprintjs/core";
+
+// used to exclude icons from column header measure
+export const CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT = "bp-table-text-no-measure";
+// supposed width of the icons placeholder
+const EXCLUDED_ICON_PLACEHOLDER_WIDTH = Icon.SIZE_STANDARD;
 
 /**
  * Since Firefox doesn't provide a computed "font" property, we manually
@@ -24,10 +29,10 @@ const CSS_FONT_PROPERTIES = ["font-style", "font-variant", "font-weight", "font-
 
 // the functions using these interfaces now live in core. it's not clear how to
 // import interfaces from core and re-export them here, so just redefine them.
-export interface IKeyWhitelist<T> {
+export interface IKeyAllowlist<T> {
     include: Array<keyof T>;
 }
-export interface IKeyBlacklist<T> {
+export interface IKeyDenylist<T> {
     exclude: Array<keyof T>;
 }
 
@@ -73,10 +78,11 @@ export const Utils = {
      * Note that this isn't technically mathematically equivalent to base 26 since
      * there is no zero element.
      */
-    toBase26Alpha(num: number): string {
+    toBase26Alpha: (num: number) => {
         let str = "";
         while (true) {
             const letter = num % 26;
+            // eslint-disable-next-line id-blacklist
             str = String.fromCharCode(65 + letter) + str;
             num = num - letter;
             if (num <= 0) {
@@ -90,7 +96,7 @@ export const Utils = {
      * Returns traditional spreadsheet-style cell names
      * e.g. (A1, B2, ..., Z44, AA1) with rows 1-indexed.
      */
-    toBase26CellName(rowIndex: number, columnIndex: number): string {
+    toBase26CellName: (rowIndex: number, columnIndex: number) => {
         return `${Utils.toBase26Alpha(columnIndex)}${rowIndex + 1}`;
     },
 
@@ -350,23 +356,20 @@ export const Utils = {
  * exclude an element's text from the computation.
  */
 function measureTextContentWithExclusions(context: CanvasRenderingContext2D, element: Element): TextMetrics {
-    // We only expect one or zero excluded elements in this subtree
-    // We don't have a need for more than one, so we avoid that complexity altogether.
-    const elementToExclude = element.querySelector(`.${CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT}`);
-    let removedElementParent: Element | undefined;
-    let removedElementNextSibling: Node | undefined;
-
-    if (elementToExclude != null) {
-        removedElementParent = elementToExclude.parentElement;
-        removedElementNextSibling = elementToExclude.nextSibling;
-        removedElementParent.removeChild(elementToExclude);
+    const elementsToExclude = element.querySelectorAll(`.${CLASSNAME_EXCLUDED_FROM_TEXT_MEASUREMENT}`);
+    let excludedElementsWidth = 0;
+    if (elementsToExclude && elementsToExclude.length) {
+        elementsToExclude.forEach(e => {
+            const excludedMetrics = context.measureText(e.textContent);
+            excludedElementsWidth += excludedMetrics.width - EXCLUDED_ICON_PLACEHOLDER_WIDTH;
+        });
     }
 
     const metrics = context.measureText(element.textContent);
+    const metricsWithExclusions = {
+        ...metrics,
+        width: metrics.width - excludedElementsWidth,
+    };
 
-    if (elementToExclude != null) {
-        removedElementParent.insertBefore(elementToExclude, removedElementNextSibling);
-    }
-
-    return metrics;
+    return metricsWithExclusions;
 }

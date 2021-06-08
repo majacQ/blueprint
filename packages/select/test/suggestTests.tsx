@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-import { InputGroup, IPopoverProps, Keys, MenuItem, Popover } from "@blueprintjs/core";
 import { assert } from "chai";
 import { mount, ReactWrapper } from "enzyme";
 import * as React from "react";
 import * as sinon from "sinon";
 
+import { InputGroup, IPopoverProps, Keys, MenuItem, Popover } from "@blueprintjs/core";
+
 import { IFilm, renderFilm, TOP_100_FILMS } from "../../docs-app/src/examples/select-examples/films";
+import { IItemRendererProps, QueryList } from "../src";
 import { ISuggestProps, ISuggestState, Suggest } from "../src/components/select/suggest";
 import { selectComponentSuite } from "./selectComponentSuite";
 
@@ -32,9 +34,9 @@ describe("Suggest", () => {
         query: "",
     };
     let handlers: {
-        inputValueRenderer: sinon.SinonSpy;
-        itemPredicate: sinon.SinonSpy;
-        itemRenderer: sinon.SinonSpy;
+        inputValueRenderer: sinon.SinonSpy<[IFilm], string>;
+        itemPredicate: sinon.SinonSpy<[string, IFilm], boolean>;
+        itemRenderer: sinon.SinonSpy<[IFilm, IItemRendererProps], JSX.Element | null>;
         onItemSelect: sinon.SinonSpy;
     };
 
@@ -60,6 +62,7 @@ describe("Suggest", () => {
     describe("Basic behavior", () => {
         it("renders an input that triggers a popover containing items", () => {
             const wrapper = suggest();
+            /* eslint-disable-next-line deprecation/deprecation */
             const popover = wrapper.find(Popover);
             assert.lengthOf(wrapper.find(InputGroup), 1, "should render InputGroup");
             assert.lengthOf(popover, 1, "should render Popover");
@@ -96,6 +99,38 @@ describe("Suggest", () => {
             assert.isFalse(scrollActiveItemIntoViewSpy.called);
             wrapper.setState({ isOpen: true });
             assert.strictEqual(scrollActiveItemIntoViewSpy.callCount, 1, "should call scrollActiveItemIntoView");
+        });
+
+        it("sets active item to the selected item when the popover is closed", done => {
+            // transition duration shorter than timeout below to ensure it's done
+            const wrapper = suggest({
+                popoverProps: { transitionDuration: 5 },
+                selectedItem: TOP_100_FILMS[10],
+            });
+            const queryList = ((wrapper.instance() as Suggest<IFilm>) as any).queryList as QueryList<IFilm>; // private ref
+
+            assert.deepEqual(
+                queryList.state.activeItem,
+                wrapper.state().selectedItem,
+                "QueryList activeItem should be set to the controlled selectedItem if prop is provided",
+            );
+
+            simulateFocus(wrapper);
+            assert.isTrue(wrapper.state().isOpen);
+
+            const newActiveItem = TOP_100_FILMS[11];
+            queryList.setActiveItem(newActiveItem);
+            assert.deepEqual(queryList.state.activeItem, newActiveItem);
+
+            simulateKeyDown(wrapper, Keys.ESCAPE);
+            assert.isFalse(wrapper.state().isOpen);
+
+            wrapper.update();
+            wrapper.find(QueryList).update();
+            setTimeout(() => {
+                assert.deepEqual(queryList.state.activeItem, wrapper.state().selectedItem);
+                done();
+            }, 10);
         });
 
         function checkKeyDownDoesNotOpenPopover(wrapper: ReactWrapper<any, any>, which: number) {
@@ -206,6 +241,7 @@ describe("Suggest", () => {
             const modifiers = {}; // our own instance
             const wrapper = suggest({ popoverProps: getPopoverProps(false, modifiers) });
             wrapper.setProps({ popoverProps: getPopoverProps(true, modifiers) }).update();
+            /* eslint-disable-next-line deprecation/deprecation */
             assert.strictEqual(wrapper.find(Popover).prop("modifiers"), modifiers);
             assert.isTrue(onOpening.calledOnce);
         });
@@ -304,10 +340,7 @@ function filterByYear(query: string, film: IFilm) {
 }
 
 function selectItem(wrapper: ReactWrapper<any, any>, index: number) {
-    wrapper
-        .find("a")
-        .at(index)
-        .simulate("click");
+    wrapper.find("a").at(index).simulate("click");
 }
 
 function inputValueRenderer(item: IFilm) {

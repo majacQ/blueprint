@@ -27,7 +27,7 @@ import {
     MenuItem,
     Popover,
     Position,
-} from "../../src/index";
+} from "../../src";
 
 describe("<CollapsibleList>", () => {
     it("adds className to itself", () => {
@@ -47,6 +47,7 @@ describe("<CollapsibleList>", () => {
             },
             dropdownTarget: <strong />,
         });
+        /* eslint-disable-next-line deprecation/deprecation */
         const popover = list.find(Popover);
         assert.strictEqual(popover.prop("position"), Position.TOP_LEFT);
     });
@@ -59,6 +60,7 @@ describe("<CollapsibleList>", () => {
                 .childAt(0) // li
                 .childAt(0) // Popover
                 .type(),
+            /* eslint-disable-next-line deprecation/deprecation */
             Popover,
         );
     });
@@ -72,6 +74,7 @@ describe("<CollapsibleList>", () => {
                 .last() // li
                 .childAt(0) // Popover
                 .type(),
+            /* eslint-disable-next-line deprecation/deprecation */
             Popover,
         );
     });
@@ -102,7 +105,11 @@ describe("<CollapsibleList>", () => {
         it("is called with props of each child", () => {
             const visibleItemRenderer = spy();
             // using END so it won't reverse the list
-            renderCollapsibleList(5, { collapseFrom: Boundary.END, visibleItemRenderer, visibleItemCount: 3 });
+            renderCollapsibleList(5, {
+                collapseFrom: Boundary.END,
+                visibleItemCount: 3,
+                visibleItemRenderer,
+            });
             assert.equal(visibleItemRenderer.callCount, 3);
             visibleItemRenderer.args.map((arg, index) => {
                 const props: IMenuItemProps = arg[0];
@@ -115,17 +122,21 @@ describe("<CollapsibleList>", () => {
             renderCollapsibleList(7, { visibleItemRenderer, visibleItemCount: 3 });
             visibleItemRenderer.args.map(arg => {
                 const props: IMenuItemProps = arg[0];
-                const absoluteIndex = +props.text.toString().slice(5); // "Item #"
+                const absoluteIndex = +props.text!.toString().slice(5); // "Item #"
                 assert.equal(absoluteIndex, arg[1]);
             });
         });
 
         it("is called with absolute index of item in props array when Boundary.END", () => {
             const visibleItemRenderer = spy();
-            renderCollapsibleList(6, { collapseFrom: Boundary.END, visibleItemRenderer, visibleItemCount: 3 });
+            renderCollapsibleList(6, {
+                collapseFrom: Boundary.END,
+                visibleItemCount: 3,
+                visibleItemRenderer,
+            });
             visibleItemRenderer.args.map(arg => {
                 const props: IMenuItemProps = arg[0];
-                const absoluteIndex = +props.text.toString().slice(5); // "Item #"
+                const absoluteIndex = +props.text!.toString().slice(5); // "Item #"
                 assert.equal(absoluteIndex, arg[1]);
             });
         });
@@ -144,14 +155,16 @@ describe("<CollapsibleList>", () => {
     }
 
     function renderCollapsibleList(broodSize: number, props?: Partial<ICollapsibleListProps>) {
+        /* eslint-disable deprecation/deprecation */
         return mount(
             <CollapsibleList dropdownTarget={<button />} visibleItemRenderer={renderItem} {...props}>
                 {withItems(broodSize)}
             </CollapsibleList>,
         );
+        /* eslint-enable deprecation/deprecation */
     }
 
-    function assertListItems(list: ReactWrapper<any, {}>, expVisibleCount: number, expCollapsedCount: number) {
+    function assertListItems(list: ReactWrapper<any>, expVisibleCount: number, expCollapsedCount: number) {
         assert.lengthOf(list.find("label"), expVisibleCount, "incorrect visible count");
         assert.lengthOf(list.find(MenuItem), expCollapsedCount, "incorrect collapsed count");
     }

@@ -16,7 +16,9 @@
 
 import classNames from "classnames";
 import * as React from "react";
-import { Classes, DISPLAYNAME_PREFIX, IProps } from "../../common";
+import { polyfill } from "react-lifecycles-compat";
+
+import { AbstractPureComponent2, Classes, DISPLAYNAME_PREFIX, IProps } from "../../common";
 import { Icon, IconName } from "../icon/icon";
 import { normalizeKeyCombo } from "./hotkeyParser";
 
@@ -42,12 +44,14 @@ export interface IKeyComboProps extends IProps {
      * Whether to render in a minimal style.
      * If `false`, each key in the combo will be rendered inside a `<kbd>` tag.
      * If `true`, only the icon or short name of a key will be rendered with no wrapper styles.
+     *
      * @default false
      */
     minimal?: boolean;
 }
 
-export class KeyCombo extends React.Component<IKeyComboProps, {}> {
+@polyfill
+export class KeyCombo extends AbstractPureComponent2<IKeyComboProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.KeyCombo`;
 
     public render() {

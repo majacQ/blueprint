@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { Classes, ContextMenuTarget, Icon, IconName, Menu, MenuItem } from "@blueprintjs/core";
 import classNames from "classnames";
 import download from "downloadjs";
 import * as React from "react";
+
+import { Classes, ContextMenuTarget, Icon, IconName, Menu, MenuItem } from "@blueprintjs/core";
+
 import { ClickToCopy } from "./clickToCopy";
 
 export interface IDocsIconProps {
@@ -25,6 +27,7 @@ export interface IDocsIconProps {
     group: string;
     iconName: IconName;
     tags: string;
+    content?: string;
 }
 
 const GITHUB_RAW_PATH = "https://raw.githubusercontent.com/palantir/blueprint/develop/resources/icons";
@@ -32,8 +35,9 @@ function downloadIconFile(iconName: IconName, iconSize: 16 | 20) {
     download(`${GITHUB_RAW_PATH}/${iconSize}px/${iconName}.svg`);
 }
 
+// eslint-disable-next-line deprecation/deprecation
 @ContextMenuTarget
-export class DocsIcon extends React.PureComponent<IDocsIconProps, {}> {
+export class DocsIcon extends React.PureComponent<IDocsIconProps> {
     public render() {
         const { iconName, displayName, tags } = this.props;
         return (
@@ -71,5 +75,6 @@ export class DocsIcon extends React.PureComponent<IDocsIconProps, {}> {
     }
 
     private handleClick16 = () => downloadIconFile(this.props.iconName, 16);
+
     private handleClick20 = () => downloadIconFile(this.props.iconName, 20);
 }

@@ -15,12 +15,12 @@
  */
 
 import { assert } from "chai";
+import { mount, ReactWrapper } from "enzyme";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { spy } from "sinon";
 
-import { mount, ReactWrapper } from "enzyme";
-import { Classes, ITreeNode, ITreeProps, Tree } from "../../src/index";
+import { Classes, ITreeNode, ITreeProps, Tree } from "../../src";
 
 describe("<Tree>", () => {
     let testsContainerElement: Element;
@@ -37,17 +37,17 @@ describe("<Tree>", () => {
 
     it("renders its contents", () => {
         const tree = renderTree({ contents: [{ id: 0, label: "Node" }] });
-        assert.lengthOf(tree.find({ className: Classes.TREE }), 1);
+        assert.lengthOf(tree.find(`.${Classes.TREE}`), 1);
     });
 
-    it("handles null input well", () => {
-        const tree = renderTree({ contents: null });
-        assert.lengthOf(tree.find({ className: Classes.TREE }), 1);
+    it("handles undefined input well", () => {
+        const tree = renderTree({ contents: undefined });
+        assert.lengthOf(tree.find(`.${Classes.TREE}`), 1);
     });
 
     it("handles empty input well", () => {
         const tree = renderTree({ contents: [] });
-        assert.lengthOf(tree.find({ className: Classes.TREE }), 1);
+        assert.lengthOf(tree.find(`.${Classes.TREE}`), 1);
     });
 
     it("hasCaret forces a caret to be/not be displayed", () => {
@@ -72,7 +72,6 @@ describe("<Tree>", () => {
 
     it("caret direction is determined by node expansion", () => {
         const contents = [
-            // tslint:disable-next-line:max-line-length
             {
                 childNodes: [{ id: 4, label: "" }],
                 className: "c0",
@@ -271,7 +270,7 @@ describe("<Tree>", () => {
 
         assert.strictEqual(
             tree.getNodeContentElement(5),
-            wrapper.getDOMNode().querySelector(`.c5 > .${Classes.TREE_NODE_CONTENT}`),
+            wrapper.getDOMNode().querySelector<HTMLElement>(`.c5 > .${Classes.TREE_NODE_CONTENT}`),
         );
         assert.isUndefined(tree.getNodeContentElement(100));
 
@@ -308,13 +307,29 @@ describe("<Tree>", () => {
         return mount(<Tree contents={createDefaultContents()} {...props} />);
     }
 
+    // tslint:disable object-literal-sort-keys
     function createDefaultContents(): ITreeNode[] {
         return [
             { id: 0, className: "c0", label: "Item 0" },
-            { id: 1, className: "c1", label: "Item 1", childNodes: [{ id: 5, className: "c5", label: "Item 5" }] },
+            {
+                id: 1,
+                className: "c1",
+                label: "Item 1",
+                childNodes: [{ id: 5, className: "c5", label: "Item 5" }],
+            },
             { id: 2, className: "c2", label: "Item 2" },
-            { id: 3, className: "c3", label: "Item 3", childNodes: [{ id: 6, className: "c6", label: "Item 6" }] },
-            { id: 4, className: "c4", label: "Item 4", childNodes: [{ id: 7, className: "c7", label: "Item 7" }] },
+            {
+                id: 3,
+                className: "c3",
+                label: "Item 3",
+                childNodes: [{ id: 6, className: "c6", label: "Item 6" }],
+            },
+            {
+                id: 4,
+                className: "c4",
+                label: "Item 4",
+                childNodes: [{ id: 7, className: "c7", label: "Item 7" }],
+            },
         ];
     }
 });

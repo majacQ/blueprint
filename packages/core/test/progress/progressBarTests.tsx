@@ -18,7 +18,7 @@ import { assert } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 
-import { Classes, ProgressBar } from "../../src/index";
+import { Classes, ProgressBar } from "../../src";
 
 describe("ProgressBar", () => {
     it("renders a PROGRESS_BAR", () => {
@@ -27,11 +27,11 @@ describe("ProgressBar", () => {
 
     it("does not set width by default", () => {
         const root = mount(<ProgressBar />);
-        assert.isNull(root.find("." + Classes.PROGRESS_METER).prop("style").width);
+        assert.isUndefined(root.find("." + Classes.PROGRESS_METER).prop("style")!.width);
     });
 
     it("value sets width percentage", () => {
         const root = mount(<ProgressBar value={0.35} />);
-        assert.strictEqual(root.find("." + Classes.PROGRESS_METER).prop("style").width, "35%");
+        assert.strictEqual(root.find("." + Classes.PROGRESS_METER).prop("style")!.width, "35%");
     });
 });

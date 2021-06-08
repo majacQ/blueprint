@@ -11,7 +11,6 @@ $package-colors: (
   "select": ($cobalt3, $cobalt2),
   "table": ($forest3, $forest2),
   "timezone": ($vermilion4, $vermilion3),
-  "labs": ($indigo3, $indigo2),
   "resources": ($orange3, $orange2),
 );
 
@@ -23,14 +22,13 @@ $dark-package-colors: (
   "select": ($cobalt4, $cobalt5),
   "table": ($forest4, $forest5),
   "timezone": ($vermilion5, $vermilion5),
-  "labs": ($indigo4, $indigo5),
   "resources": ($orange5, $orange5),
 );
 
 .docs-logo {
   display: block;
-  opacity: 0.8;
   margin-right: $sidebar-padding;
+  opacity: 0.8;
   transition: opacity ($pt-transition-duration * 2) $pt-transition-ease;
 
   &:hover {
@@ -51,9 +49,9 @@ $dark-package-colors: (
 }
 
 .docs-heading {
-  margin-right: $pt-grid-size;
   font-size: $pt-grid-size * 2;
   font-weight: 600;
+  margin-right: $pt-grid-size;
 
   .#{$ns}-tag {
     margin-left: $pt-grid-size / 2;
@@ -63,19 +61,19 @@ $dark-package-colors: (
 }
 
 .docs-version-list {
-  min-width: $pt-grid-size * 12;
   max-height: $pt-grid-size * 20;
+  min-width: $pt-grid-size * 12;
   overflow: auto;
 }
 
 .docs-nav-tag {
-  padding-top: 0;
   padding-bottom: 0;
+  padding-top: 0;
 }
 
 .docs-nav-package-icon {
-  margin-right: $pt-grid-size;
   border-radius: $pt-border-radius * 3;
+  margin-right: $pt-grid-size;
 }
 
 .docs-nav-package {
@@ -83,10 +81,10 @@ $dark-package-colors: (
   align-items: center;
 
   .#{$ns}-menu-item {
-    flex: 1 1 auto;
     background-color: transparent;
-    text-transform: uppercase;
+    flex: 1 1 auto;
     font-weight: 600;
+    text-transform: uppercase;
   }
 
   @each $package-name in map-keys($package-colors) {
@@ -106,7 +104,7 @@ $dark-package-colors: (
         }
       }
 
-      // stylelint-disable max-nesting-depth
+      /* stylelint-disable max-nesting-depth */
       &:hover,
       &.docs-nav-expanded {
         .#{$ns}-menu-item,
@@ -135,7 +133,7 @@ $dark-package-colors: (
           }
         }
       }
-      // stylelint-enable max-nesting-depth
+      /* stylelint-enable max-nesting-depth */
     }
   }
 
@@ -150,11 +148,11 @@ $dark-package-colors: (
 }
 
 .docs-nav-section {
-  margin-top: $pt-grid-size * 2;
-  margin-bottom: $pt-grid-size;
-  text-transform: uppercase;
   font-size: small;
   font-weight: 700;
+  margin-bottom: $pt-grid-size;
+  margin-top: $pt-grid-size * 2;
+  text-transform: uppercase;
 
   // dedent menu under a section title
   + .docs-nav-menu {
@@ -163,8 +161,8 @@ $dark-package-colors: (
 }
 
 .docs-copyright {
-  display: flex;
   align-items: center;
+  display: flex;
 
   svg {
     height: 1.2em;

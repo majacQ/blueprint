@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Classes, Intent, IProps, Tag } from "@blueprintjs/core";
 import {
     isTag,
     isTsProperty,
@@ -26,6 +25,9 @@ import {
 } from "@documentalist/client";
 import classNames from "classnames";
 import * as React from "react";
+
+import { Classes, Intent, IProps, Tag } from "@blueprintjs/core";
+
 import { DocumentationContextTypes, IDocumentationContext } from "../../common/context";
 import { ModifierTable } from "../modifierTable";
 import { ApiHeader } from "./apiHeader";
@@ -38,9 +40,11 @@ export interface IInterfaceTableProps extends IProps {
     title: string;
 }
 
-// tslint:disable:blueprint-html-components - rendered inside RUNNING_TEXT
+// rendered inside RUNNING_TEXT
+/* eslint-disable @blueprintjs/html-components */
 export class InterfaceTable extends React.PureComponent<IInterfaceTableProps> {
     public static contextTypes = DocumentationContextTypes;
+
     public static displayName = "Docs2.InterfaceTable";
 
     public context: IDocumentationContext;
@@ -120,7 +124,7 @@ export class InterfaceTable extends React.PureComponent<IInterfaceTableProps> {
         // entry.type looks like "{ [name: string]: (date: Date) => boolean }"
         const [signature, returnType] = entry.type.slice(2, -2).split("]: ");
         return (
-            <tr key={name}>
+            <tr key={entry.name}>
                 <td className="docs-prop-name">
                     <code>{renderType(signature)}]</code>
                 </td>

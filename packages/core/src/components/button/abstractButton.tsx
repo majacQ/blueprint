@@ -17,18 +17,28 @@
 import classNames from "classnames";
 import * as React from "react";
 
-import { Alignment } from "../../common/alignment";
-import * as Classes from "../../common/classes";
-import * as Keys from "../../common/keys";
-import { IActionProps, MaybeElement } from "../../common/props";
-import { isReactNodeEmpty, safeInvoke } from "../../common/utils";
+import {
+    AbstractPureComponent2,
+    Alignment,
+    Classes,
+    getRef,
+    IActionProps,
+    IElementRefProps,
+    IRefObject,
+    Keys,
+    MaybeElement,
+    Utils,
+} from "../../common";
 import { Icon, IconName } from "../icon/icon";
 import { Spinner } from "../spinner/spinner";
 
-export interface IButtonProps extends IActionProps {
+export interface IButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = HTMLButtonElement>
+    extends IActionProps,
+        IElementRefProps<E> {
     /**
      * If set to `true`, the button will display in an active state.
      * This is equivalent to setting `className={Classes.ACTIVE}`.
+     *
      * @default false
      */
     active?: boolean;
@@ -38,12 +48,10 @@ export interface IButtonProps extends IActionProps {
      * within the button. Passing `"left"` or `"right"` will align the button
      * text to that side and push `icon` and `rightIcon` to either edge. Passing
      * `"center"` will center the text and icons together.
+     *
      * @default Alignment.CENTER
      */
     alignText?: Alignment;
-
-    /** A ref handler that receives the native HTML element backing this component. */
-    elementRef?: (ref: HTMLElement | null) => any;
 
     /** Whether this button should expand to fill its container. */
     fill?: boolean;
@@ -54,12 +62,16 @@ export interface IButtonProps extends IActionProps {
     /**
      * If set to `true`, the button will display a centered loading spinner instead of its contents.
      * The width of the button is not affected by the value of this prop.
+     *
      * @default false
      */
     loading?: boolean;
 
     /** Whether this button should use minimal styles. */
     minimal?: boolean;
+
+    /** Whether this button should use outlined styles. */
+    outlined?: boolean;
 
     /** Name of a Blueprint UI icon (or an icon element) to render after the text. */
     rightIcon?: IconName | MaybeElement;
@@ -70,48 +82,49 @@ export interface IButtonProps extends IActionProps {
     /**
      * HTML `type` attribute of button. Accepted values are `"button"`, `"submit"`, and `"reset"`.
      * Note that this prop has no effect on `AnchorButton`; it only affects `Button`.
+     *
      * @default "button"
      */
     type?: "submit" | "reset" | "button";
 }
 
+export type IAnchorButtonProps = IButtonProps<HTMLAnchorElement>;
+
 export interface IButtonState {
     isActive: boolean;
 }
 
-export abstract class AbstractButton<H extends React.HTMLAttributes<any>> extends React.PureComponent<
-    IButtonProps & H,
+export abstract class AbstractButton<E extends HTMLButtonElement | HTMLAnchorElement> extends AbstractPureComponent2<
+    IButtonProps<E> &
+        (E extends HTMLButtonElement
+            ? React.ButtonHTMLAttributes<HTMLButtonElement>
+            : React.AnchorHTMLAttributes<HTMLAnchorElement>),
     IButtonState
 > {
     public state = {
         isActive: false,
     };
 
-    protected buttonRef: HTMLElement;
-    protected refHandlers = {
-        button: (ref: HTMLElement) => {
-            this.buttonRef = ref;
-            safeInvoke(this.props.elementRef, ref);
-        },
-    };
+    protected abstract buttonRef: HTMLElement | IRefObject<HTMLElement> | null;
 
-    private currentKeyDown: number = null;
+    private currentKeyDown?: number;
 
     public abstract render(): JSX.Element;
 
     protected getCommonButtonProps() {
-        const { alignText, fill, large, loading, minimal, small, tabIndex } = this.props;
+        const { active, alignText, fill, large, loading, outlined, minimal, small, tabIndex } = this.props;
         const disabled = this.props.disabled || loading;
 
         const className = classNames(
             Classes.BUTTON,
             {
-                [Classes.ACTIVE]: this.state.isActive || this.props.active,
+                [Classes.ACTIVE]: !disabled && (active || this.state.isActive),
                 [Classes.DISABLED]: disabled,
                 [Classes.FILL]: fill,
                 [Classes.LARGE]: large,
                 [Classes.LOADING]: loading,
                 [Classes.MINIMAL]: minimal,
+                [Classes.OUTLINED]: outlined,
                 [Classes.SMALL]: small,
             },
             Classes.alignmentClass(alignText),
@@ -122,10 +135,10 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<any>> extend
         return {
             className,
             disabled,
+            onBlur: this.handleBlur,
             onClick: disabled ? undefined : this.props.onClick,
             onKeyDown: this.handleKeyDown,
             onKeyUp: this.handleKeyUp,
-            ref: this.refHandlers.button,
             tabIndex: disabled ? -1 : tabIndex,
         };
     }
@@ -135,6 +148,8 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<any>> extend
     // argument because it is not a supertype of candidate
     // 'KeyboardEvent<HTMLElement>'."
     protected handleKeyDown = (e: React.KeyboardEvent<any>) => {
+        // HACKHACK: https://github.com/palantir/blueprint/issues/4165
+        /* eslint-disable deprecation/deprecation */
         if (Keys.isKeyboardClick(e.which)) {
             e.preventDefault();
             if (e.which !== this.currentKeyDown) {
@@ -142,16 +157,25 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<any>> extend
             }
         }
         this.currentKeyDown = e.which;
-        safeInvoke(this.props.onKeyDown, e);
+        this.props.onKeyDown?.(e);
     };
 
     protected handleKeyUp = (e: React.KeyboardEvent<any>) => {
+        // HACKHACK: https://github.com/palantir/blueprint/issues/4165
+        /* eslint-disable deprecation/deprecation */
         if (Keys.isKeyboardClick(e.which)) {
             this.setState({ isActive: false });
-            this.buttonRef.click();
+            getRef(this.buttonRef)?.click();
         }
-        this.currentKeyDown = null;
-        safeInvoke(this.props.onKeyUp, e);
+        this.currentKeyDown = undefined;
+        this.props.onKeyUp?.(e);
+    };
+
+    protected handleBlur = (e: React.FocusEvent<any>) => {
+        if (this.state.isActive) {
+            this.setState({ isActive: false });
+        }
+        this.props.onBlur?.(e);
     };
 
     protected renderChildren(): React.ReactNode {
@@ -159,7 +183,7 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<any>> extend
         return [
             loading && <Spinner key="loading" className={Classes.BUTTON_SPINNER} size={Icon.SIZE_LARGE} />,
             <Icon key="leftIcon" icon={icon} />,
-            (!isReactNodeEmpty(text) || !isReactNodeEmpty(children)) && (
+            (!Utils.isReactNodeEmpty(text) || !Utils.isReactNodeEmpty(children)) && (
                 <span key="text" className={Classes.BUTTON_TEXT}>
                     {text}
                     {children}
