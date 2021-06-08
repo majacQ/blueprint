@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+  <<<<<<< ad/fix-webpack
 import React from "react";
 import { findDOMNode } from "react-dom";
+  <<<<<<< ad/fix-webpack
+  =======
+import * as React from "react";
+  >>>>>>> ad/reduce-find-dom-node
+import { polyfill } from "react-lifecycles-compat";
+  =======
+  >>>>>>> v4
 import ResizeObserver from "resize-observer-polyfill";
 
 import { AbstractPureComponent } from "../../common";
@@ -54,12 +62,21 @@ export class ResizeSensor extends AbstractPureComponent<ResizeSensorProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.ResizeSensor`;
 
     private element: Element | null = null;
+  <<<<<<< ad/fix-webpack
 
+  =======
+    private handleRef = (el: Element | null) => (this.element = el);
+  >>>>>>> ad/reduce-find-dom-node
     private observer = new ResizeObserver(entries => this.props.onResize?.(entries));
+    private observedElement?: Element;
 
     public render() {
-        // pass-through render of single child
-        return React.Children.only(this.props.children);
+        const singleChild = React.Children.only(this.props.children);
+        if (!React.isValidElement(singleChild)) {
+            return singleChild;
+        }
+
+        return React.cloneElement(singleChild, { ref: this.handleRef });
     }
 
     public componentDidMount() {
@@ -80,34 +97,34 @@ export class ResizeSensor extends AbstractPureComponent<ResizeSensorProps> {
      * re-observe.
      */
     private observeElement(force = false) {
-        const element = this.getElement();
-        if (!(element instanceof Element)) {
+        if (!(this.element instanceof Element)) {
             // stop everything if not defined
             this.observer.disconnect();
             return;
         }
 
-        if (element === this.element && !force) {
+        if (this.observedElement === this.element && !force) {
             // quit if given same element -- nothing to update (unless forced)
             return;
         } else {
             // clear observer list if new element
             this.observer.disconnect();
             // remember element reference for next time
-            this.element = element;
+            this.observedElement = this.element;
         }
 
         // observer callback is invoked immediately when observing new elements
-        this.observer.observe(element);
+        this.observer.observe(this.element);
 
         if (this.props.observeParents) {
-            let parent = element.parentElement;
+            let parent = this.element.parentElement;
             while (parent != null) {
                 this.observer.observe(parent);
                 parent = parent.parentElement;
             }
         }
     }
+  <<<<<<< ad/fix-webpack
 
     private getElement() {
         try {
@@ -122,4 +139,6 @@ export class ResizeSensor extends AbstractPureComponent<ResizeSensorProps> {
             return null;
         }
     }
+  =======
+  >>>>>>> ad/reduce-find-dom-node
 }

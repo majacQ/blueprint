@@ -32,7 +32,10 @@ export interface EditableTextProps extends IntentProps, Props {
      *
      * This behavior can help in certain applications where, for example, a custom right-click
      * context menu is used to supply clipboard copy and paste functionality.
+  <<<<<<< ad/fix-webpack
      *
+  =======
+  >>>>>>> release/3.17.x
      * @default false
      */
     alwaysRenderInput?: boolean;
@@ -154,10 +157,15 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
         type: "text",
     };
 
+  <<<<<<< ad/fix-webpack
     private inputElement: HTMLInputElement | HTMLTextAreaElement | null = null;
 
     private valueElement: HTMLSpanElement | null = null;
 
+  =======
+    private inputElement?: HTMLInputElement | HTMLTextAreaElement;
+    private valueElement: HTMLSpanElement;
+  >>>>>>> release/3.17.x
     private refHandlers = {
         content: (spanElement: HTMLSpanElement | null) => {
             this.valueElement = spanElement;
@@ -166,11 +174,14 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
             if (input != null) {
                 this.inputElement = input;
 
+  <<<<<<< ad/fix-webpack
                 // temporary fix for #3882
                 if (!this.props.alwaysRenderInput) {
                     this.inputElement.focus();
                 }
 
+  =======
+  >>>>>>> release/3.17.x
                 if (this.state != null && this.state.isEditing) {
                     const supportsSelection = inputSupportsSelection(input);
                     if (supportsSelection) {
@@ -200,7 +211,11 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
 
     public render() {
         const { alwaysRenderInput, disabled, multiline } = this.props;
+  <<<<<<< ad/fix-webpack
         const value = this.props.value ?? this.state.value;
+  =======
+        const value = this.props.value == null ? this.state.value : this.props.value;
+  >>>>>>> release/3.17.x
         const hasValue = value != null && value !== "";
 
         const classes = classNames(
@@ -232,7 +247,11 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
         // If we are always rendering an input, then NEVER make the container div focusable.
         // Otherwise, make container div focusable when not editing, so it can still be tabbed
         // to focus (when the input is rendered, it is itself focusable so container div doesn't need to be)
+  <<<<<<< ad/fix-webpack
         const tabIndex = alwaysRenderInput || this.state.isEditing || disabled ? undefined : 0;
+  =======
+        const tabIndex = alwaysRenderInput || this.state.isEditing || disabled ? null : 0;
+  >>>>>>> release/3.17.x
 
         // we need the contents to be rendered while editing so that we can measure their height
         // and size the container element responsively
@@ -241,7 +260,13 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
         return (
             <div className={classes} onFocus={this.handleFocus} tabIndex={tabIndex}>
                 {alwaysRenderInput || this.state.isEditing ? this.renderInput(value) : undefined}
+  <<<<<<< ad/fix-webpack
                 {shouldHideContents ? undefined : (
+  =======
+                {shouldHideContents ? (
+                    undefined
+                ) : (
+  >>>>>>> release/3.17.x
                     <span className={Classes.EDITABLE_TEXT_CONTENT} ref={this.refHandlers.content} style={contentStyle}>
                         {hasValue ? value : this.props.placeholder}
                     </span>
@@ -346,8 +371,13 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
         }
     };
 
+  <<<<<<< ad/fix-webpack
     private renderInput(value: string | undefined) {
         const { disabled, maxLength, multiline, type, placeholder } = this.props;
+  =======
+    private renderInput(value: string) {
+        const { maxLength, multiline, type, placeholder } = this.props;
+  >>>>>>> release/3.17.x
         const props: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> = {
             className: Classes.EDITABLE_TEXT_INPUT,
             disabled,
@@ -363,7 +393,11 @@ export class EditableText extends AbstractPureComponent<EditableTextProps, Edita
         if (inputHeight !== 0 && inputWidth !== 0) {
             props.style = {
                 height: inputHeight,
+  <<<<<<< ad/fix-webpack
                 lineHeight: !multiline && inputHeight != null ? `${inputHeight}px` : undefined,
+  =======
+                lineHeight: !multiline && inputHeight != null ? `${inputHeight}px` : null,
+  >>>>>>> release/3.17.x
                 width: multiline ? "100%" : inputWidth,
             };
         }

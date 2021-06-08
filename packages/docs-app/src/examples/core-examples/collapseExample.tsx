@@ -14,11 +14,51 @@
  * limitations under the License.
  */
 
-import React from "react";
+import React, { useCallback, useState } from "react";
 
 import { Button, Collapse, H5, Pre, Switch } from "@blueprintjs/core";
 import { Example, handleBooleanChange, ExampleProps } from "@blueprintjs/docs-theme";
 
+  <<<<<<< ad/fix-webpack
+export const CollapseExample: React.FC<IExampleProps> = props => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [keepChildrenMounted, setKeepChildrenMounted] = useState(false);
+    const handleChildrenMountedChange = useCallback(handleBooleanChange(setKeepChildrenMounted), []);
+    const handleClick = useCallback(() => setIsOpen(!isOpen), [isOpen]);
+
+    const options = (
+        <>
+            <H5>Props</H5>
+            <Switch
+                checked={keepChildrenMounted}
+                label="Keep children mounted"
+                onChange={handleChildrenMountedChange}
+            />
+        </>
+    );
+
+    return (
+        <Example options={options} {...props}>
+            <div style={{ width: "100%", height: "100%", margin: 0 }}>
+                <Button onClick={handleClick}>{isOpen ? "Hide" : "Show"} build logs</Button>
+                <Collapse isOpen={isOpen} keepChildrenMounted={keepChildrenMounted}>
+                    <Pre>
+                        [11:53:30] Finished 'typescript-bundle-blueprint' after 769 ms
+                        <br />
+                        [11:53:30] Starting 'typescript-typings-blueprint'...
+                        <br />
+                        [11:53:30] Finished 'typescript-typings-blueprint' after 198 ms
+                        <br />
+                        [11:53:30] write ./blueprint.css
+                        <br />
+                        [11:53:30] Finished 'sass-compile-blueprint' after 2.84 s
+                    </Pre>
+                </Collapse>
+            </div>
+        </Example>
+    );
+};
+  =======
 export interface CollapseExampleState {
     isOpen: boolean;
     keepChildrenMounted: boolean;
@@ -70,3 +110,4 @@ export class CollapseExample extends React.PureComponent<ExampleProps, CollapseE
 
     private handleClick = () => this.setState({ isOpen: !this.state.isOpen });
 }
+  >>>>>>> v4

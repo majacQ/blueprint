@@ -21,7 +21,11 @@ import { Example, ExampleProps } from "@blueprintjs/docs-theme";
 
 import { PianoKey } from "./audio";
 
+  <<<<<<< ad/fix-webpack
+export const UseHotkeysExample: React.FC<IExampleProps> = props => {
+  =======
 export const UseHotkeysExample: React.FC<ExampleProps> = props => {
+  >>>>>>> v4
     const [audioContext, setAudioContext] = useState<AudioContext>();
 
     const pianoRef = useRef<HTMLDivElement>();

@@ -41,6 +41,11 @@ export function ContextMenuTarget<T extends Constructor<ContextMenuTargetCompone
     return class ContextMenuTargetClass extends WrappedComponent {
         public static displayName = `ContextMenuTarget(${getDisplayName(WrappedComponent)})`;
 
+        /** @internal */
+        public element: Element | null = null;
+        /** @internal */
+        public handleRef = (el: Element | null) => (this.element = el);
+
         public render() {
             const element = super.render();
 
@@ -63,9 +68,13 @@ export function ContextMenuTarget<T extends Constructor<ContextMenuTargetCompone
                 if (isFunction(this.renderContextMenu)) {
                     const menu = this.renderContextMenu(e);
                     if (menu != null) {
+  <<<<<<< ad/fix-webpack
                         // HACKHACK: see https://github.com/palantir/blueprint/issues/3979
                         /* eslint-disable-next-line react/no-find-dom-node */
                         const darkTheme = isDarkTheme(ReactDOM.findDOMNode(this));
+  =======
+                        const darkTheme = isDarkTheme(this.element);
+  >>>>>>> ad/reduce-find-dom-node
                         e.preventDefault();
                         ContextMenu.show(menu, { left: e.clientX, top: e.clientY }, this.onContextMenuClose, darkTheme);
                     }
@@ -74,7 +83,7 @@ export function ContextMenuTarget<T extends Constructor<ContextMenuTargetCompone
                 oldOnContextMenu?.(e);
             };
 
-            return React.cloneElement(element, { onContextMenu });
+            return React.cloneElement(element, { ref: this.handleRef, onContextMenu });
         }
     };
 }

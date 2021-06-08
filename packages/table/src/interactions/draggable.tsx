@@ -57,26 +57,48 @@ export class Draggable extends React.PureComponent<DraggableProps> {
         stopPropagation: false,
     };
 
-    private events: DragEvents;
+    private element: HTMLElement | null = null;
+    private handleRef = (el: HTMLElement | null) => (this.element = el);
+    private events?: DragEvents;
 
     public render() {
-        return React.Children.only(this.props.children);
+        const singleChild = React.Children.only(this.props.children);
+        if (!React.isValidElement(singleChild)) {
+            return singleChild;
+        }
+
+        return React.cloneElement(singleChild, { ref: this.handleRef });
     }
 
     public componentDidUpdate(prevProps: DraggableProps) {
         const propsWhitelist = { include: REATTACH_PROPS_KEYS };
+  <<<<<<< ad/fix-webpack
         if (this.events && !CoreUtils.shallowCompareKeys(prevProps, this.props, propsWhitelist)) {
             // HACKHACK: see https://github.com/palantir/blueprint/issues/3979
             // eslint-disable-next-line react/no-find-dom-node
             this.events.attach(ReactDOM.findDOMNode(this) as HTMLElement, this.props);
+  =======
+        if (
+            this.element != null &&
+            this.events !== undefined &&
+            !CoreUtils.shallowCompareKeys(prevProps, this.props, propsWhitelist)
+        ) {
+            this.events.attach(this.element, this.props);
+  >>>>>>> ad/reduce-find-dom-node
         }
     }
 
     public componentDidMount() {
         this.events = new DragEvents();
+  <<<<<<< ad/fix-webpack
         // HACKHACK: see https://github.com/palantir/blueprint/issues/3979
         // eslint-disable-next-line react/no-find-dom-node
         this.events.attach(ReactDOM.findDOMNode(this) as HTMLElement, this.props);
+  =======
+        if (this.element != null) {
+            this.events.attach(this.element, this.props);
+        }
+  >>>>>>> ad/reduce-find-dom-node
     }
 
     public componentWillUnmount() {
