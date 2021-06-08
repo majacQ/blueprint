@@ -30,8 +30,12 @@ export interface IApiLinkProps extends Props {
  */
 export class ApiLink extends React.PureComponent<IApiLinkProps> {
     public static contextTypes = DocumentationContextTypes;
+  <<<<<<< ad/form-component
 
     public context: IDocumentationContext;
+  =======
+    public declare context: IDocumentationContext;
+  >>>>>>> ad/tsconfig-flag
 
     public render() {
         const { className, name } = this.props;

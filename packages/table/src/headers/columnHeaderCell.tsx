@@ -108,8 +108,12 @@ export class ColumnHeaderCell extends AbstractPureComponent2<IColumnHeaderCellPr
         );
     }
 
+  <<<<<<< ad/form-component
     public context: IColumnInteractionBarContextTypes;
 
+  =======
+    public declare context: IColumnInteractionBarContextTypes;
+  >>>>>>> ad/tsconfig-flag
     public state = {
         isActive: false,
     };

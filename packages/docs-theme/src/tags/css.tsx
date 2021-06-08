@@ -32,8 +32,12 @@ export class CssExample extends React.PureComponent<ITag> {
 
     public static displayName = "Docs2.CssExample";
 
+  <<<<<<< ad/form-component
     public context: IDocumentationContext | undefined;
 
+  =======
+    public declare context: IDocumentationContext;
+  >>>>>>> ad/tsconfig-flag
     public state: ICssExampleState = { modifiers: new Set<string>() };
 
     public render() {
