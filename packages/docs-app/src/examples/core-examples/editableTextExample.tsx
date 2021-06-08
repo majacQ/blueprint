@@ -45,6 +45,7 @@ export class EditableTextExample extends React.PureComponent<IExampleProps, IEdi
     private toggleSelectAll = handleBooleanChange(selectAllOnFocus => this.setState({ selectAllOnFocus }));
 
     private toggleSwap = handleBooleanChange(confirmOnEnterKey => this.setState({ confirmOnEnterKey }));
+    private toggleAlwaysRenderInput = handleBooleanChange(alwaysRenderInput => this.setState({ alwaysRenderInput }));
 
     private toggleAlwaysRenderInput = handleBooleanChange(alwaysRenderInput => this.setState({ alwaysRenderInput }));
 
