@@ -13,11 +13,21 @@
  * limitations under the License.
  */
 
+  <<<<<<< ad/fix-webpack
+const { baseConfig, COMMON_EXTERNALS } = require("@blueprintjs/webpack-build-scripts");
+  =======
+const path = require("path");
+  >>>>>>> v4
+
 const { baseConfig, COMMON_EXTERNALS } = require("@blueprintjs/webpack-build-scripts");
 
 module.exports = Object.assign({}, baseConfig, {
     entry: {
+  <<<<<<< ad/fix-webpack
         icons: "./src/index.ts",
+  =======
+        icons: ["./src/generated/index.ts"],
+  >>>>>>> v4
     },
 
     externals: COMMON_EXTERNALS,
@@ -26,6 +36,10 @@ module.exports = Object.assign({}, baseConfig, {
         filename: "[name].bundle.js",
         library: ["Blueprint", "Icons"],
         libraryTarget: "umd",
+  <<<<<<< ad/fix-webpack
+  =======
+        path: path.resolve(__dirname, "./dist"),
+  >>>>>>> v4
     },
 
     performance: {

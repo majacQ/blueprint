@@ -16,19 +16,18 @@
 
 import classNames from "classnames";
 import React from "react";
-import { polyfill } from "react-lifecycles-compat";
 
-import { IconName } from "@blueprintjs/icons";
+import { IconName, ChevronDown, ChevronUp } from "@blueprintjs/icons";
 
 import {
-    AbstractPureComponent2,
+    AbstractPureComponent,
     Classes,
     DISPLAYNAME_PREFIX,
     HTMLInputProps,
-    IIntentProps,
+    IntentProps,
     Intent,
-    IProps,
-    IRef,
+    Props,
+    Ref,
     Keys,
     MaybeElement,
     Position,
@@ -52,7 +51,7 @@ import {
     toMaxPrecision,
 } from "./numericInputUtils";
 
-export interface INumericInputProps extends IIntentProps, IProps {
+export interface NumericInputProps extends IntentProps, Props {
     /**
      * Whether to allow only floating-point number characters in the field,
      * mimicking the native `input[type="number"]`.
@@ -106,7 +105,7 @@ export interface INumericInputProps extends IIntentProps, IProps {
     /**
      * Ref handler that receives HTML `<input>` element backing this component.
      */
-    inputRef?: IRef<HTMLInputElement>;
+    inputRef?: Ref<HTMLInputElement>;
 
     /**
      * If set to `true`, the input will display with larger styling.
@@ -194,7 +193,7 @@ export interface INumericInputProps extends IIntentProps, IProps {
     onValueChange?(valueAsNumber: number, valueAsString: string, inputElement: HTMLInputElement | null): void;
 }
 
-export interface INumericInputState {
+export interface NumericInputState {
     currentImeInputInvalid: boolean;
     prevMinProp?: number;
     prevMaxProp?: number;
@@ -208,7 +207,7 @@ enum IncrementDirection {
     UP = +1,
 }
 
-const NON_HTML_PROPS: Array<keyof INumericInputProps> = [
+const NON_HTML_PROPS: Array<keyof NumericInputProps> = [
     "allowNumericCharactersOnly",
     "buttonPosition",
     "clampValueOnBlur",
@@ -225,15 +224,14 @@ const NON_HTML_PROPS: Array<keyof INumericInputProps> = [
 
 type ButtonEventHandlers = Required<Pick<React.HTMLAttributes<Element>, "onKeyDown" | "onMouseDown">>;
 
-@polyfill
-export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumericInputProps, INumericInputState> {
+export class NumericInput extends AbstractPureComponent<HTMLInputProps & NumericInputProps, NumericInputState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.NumericInput`;
 
     public static VALUE_EMPTY = "";
 
     public static VALUE_ZERO = "0";
 
-    public static defaultProps: INumericInputProps = {
+    public static defaultProps: NumericInputProps = {
         allowNumericCharactersOnly: true,
         buttonPosition: Position.RIGHT,
         clampValueOnBlur: false,
@@ -246,7 +244,7 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
         stepSize: 1,
     };
 
-    public static getDerivedStateFromProps(props: INumericInputProps, state: INumericInputState) {
+    public static getDerivedStateFromProps(props: NumericInputProps, state: NumericInputState) {
         const nextState = {
             prevMaxProp: props.max,
             prevMinProp: props.min,
@@ -280,7 +278,7 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
 
     // Value Helpers
     // =============
-    private static getStepMaxPrecision(props: HTMLInputProps & INumericInputProps) {
+    private static getStepMaxPrecision(props: HTMLInputProps & NumericInputProps) {
         if (props.minorStepSize != null) {
             return Utils.countDecimalPlaces(props.minorStepSize);
         } else {
@@ -305,7 +303,7 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
         return toLocaleString(clampedValue, locale);
     }
 
-    public state: INumericInputState = {
+    public state: NumericInputState = {
         currentImeInputInvalid: false,
         shouldSelectAfterUpdate: false,
         stepMaxPrecision: NumericInput.getStepMaxPrecision(this.props),
@@ -319,7 +317,7 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
 
     public inputElement: HTMLInputElement | null = null;
 
-    private inputRef: IRef<HTMLInputElement> = refHandler(this, "inputElement", this.props.inputRef);
+    private inputRef: Ref<HTMLInputElement> = refHandler(this, "inputElement", this.props.inputRef);
 
     private intervalId?: number;
 
@@ -340,7 +338,7 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
         );
     }
 
-    public componentDidUpdate(prevProps: INumericInputProps, prevState: INumericInputState) {
+    public componentDidUpdate(prevProps: NumericInputProps, prevState: NumericInputState) {
         super.componentDidUpdate(prevProps, prevState);
 
         if (this.state.shouldSelectAfterUpdate) {
@@ -363,25 +361,25 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
         }
     }
 
-    protected validateProps(nextProps: HTMLInputProps & INumericInputProps) {
+    protected validateProps(nextProps: HTMLInputProps & NumericInputProps) {
         const { majorStepSize, max, min, minorStepSize, stepSize, value } = nextProps;
         if (min != null && max != null && min > max) {
-            throw new Error(Errors.NUMERIC_INPUT_MIN_MAX);
+            console.error(Errors.NUMERIC_INPUT_MIN_MAX);
         }
         if (stepSize! <= 0) {
-            throw new Error(Errors.NUMERIC_INPUT_STEP_SIZE_NON_POSITIVE);
+            console.error(Errors.NUMERIC_INPUT_STEP_SIZE_NON_POSITIVE);
         }
         if (minorStepSize && minorStepSize <= 0) {
-            throw new Error(Errors.NUMERIC_INPUT_MINOR_STEP_SIZE_NON_POSITIVE);
+            console.error(Errors.NUMERIC_INPUT_MINOR_STEP_SIZE_NON_POSITIVE);
         }
         if (majorStepSize && majorStepSize <= 0) {
-            throw new Error(Errors.NUMERIC_INPUT_MAJOR_STEP_SIZE_NON_POSITIVE);
+            console.error(Errors.NUMERIC_INPUT_MAJOR_STEP_SIZE_NON_POSITIVE);
         }
         if (minorStepSize && minorStepSize > stepSize!) {
-            throw new Error(Errors.NUMERIC_INPUT_MINOR_STEP_SIZE_BOUND);
+            console.error(Errors.NUMERIC_INPUT_MINOR_STEP_SIZE_BOUND);
         }
         if (majorStepSize && majorStepSize < stepSize!) {
-            throw new Error(Errors.NUMERIC_INPUT_MAJOR_STEP_SIZE_BOUND);
+            console.error(Errors.NUMERIC_INPUT_MAJOR_STEP_SIZE_BOUND);
         }
 
         // controlled mode
@@ -422,13 +420,13 @@ export class NumericInput extends AbstractPureComponent2<HTMLInputProps & INumer
             <ButtonGroup className={Classes.FIXED} key="button-group" vertical={true}>
                 <Button
                     disabled={disabled || isIncrementDisabled}
-                    icon="chevron-up"
+                    icon={<ChevronUp />}
                     intent={intent}
                     {...this.incrementButtonHandlers}
                 />
                 <Button
                     disabled={disabled || isDecrementDisabled}
-                    icon="chevron-down"
+                    icon={<ChevronDown />}
                     intent={intent}
                     {...this.decrementButtonHandlers}
                 />

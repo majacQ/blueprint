@@ -15,6 +15,7 @@
 
 import "@blueprintjs/test-commons/bootstrap";
 
+// components
 import "./alert/alertTests";
 import "./breadcrumbs/breadcrumbsTests";
 import "./breadcrumbs/breadcrumbTests";
@@ -22,7 +23,6 @@ import "./buttons/buttonTests";
 import "./callout/calloutTests";
 import "./card/cardTests";
 import "./collapse/collapseTests";
-import "./collapsible-list/collapsibleListTests";
 import "./common/propsTests";
 import "./common/utils/compareUtilsTests";
 import "./common/utilsTests";
@@ -38,7 +38,8 @@ import "./forms/asyncControllableInputTests";
 import "./forms/fileInputTests";
 import "./forms/formGroupTests";
 import "./forms/textAreaTests";
-import "./hotkeys/hotkeysTests";
+import "./hotkeys/hotkeysParserTests";
+import "./hotkeys/keyComboTagTests";
 import "./html-select/htmlSelectTests";
 import "./icon/iconTests";
 import "./menu/menuItemTests";
@@ -48,7 +49,6 @@ import "./non-ideal-state/nonIdealStateTests";
 import "./overflow-list/overflowListTests";
 import "./overlay/overlayTests";
 import "./panel-stack/panelStackTests";
-import "./panel-stack2/panelStack2Tests";
 import "./popover/popoverTests";
 import "./popover/popperUtilTests";
 import "./portal/portalTests";
@@ -67,3 +67,6 @@ import "./toast/toasterTests";
 import "./toast/toastTests";
 import "./tooltip/tooltipTests";
 import "./tree/treeTests";
+
+// hooks
+import "./hooks/useHotkeysTests";

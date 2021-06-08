@@ -16,13 +16,10 @@
 
 import classNames from "classnames";
 import React from "react";
-import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, IElementRefProps } from "../../common";
+import { AbstractPureComponent, Classes, ElementRefProps } from "../../common";
 
-export interface IHTMLTableProps
-    extends React.TableHTMLAttributes<HTMLTableElement>,
-        IElementRefProps<HTMLTableElement> {
+export interface HTMLTableProps extends React.TableHTMLAttributes<HTMLTableElement>, ElementRefProps<HTMLTableElement> {
     /** Enables borders between rows and cells. */
     bordered?: boolean;
 
@@ -32,24 +29,17 @@ export interface IHTMLTableProps
     /** Enables hover styles on row. */
     interactive?: boolean;
 
-    /**
-     * Use small, condensed appearance for this element and all child elements.
-     *
-     * @deprecated
-     */
-    small?: boolean;
-
     /** Use an alternate background color on odd rows. */
     striped?: boolean;
 }
 
 // this component is simple enough that tests would be purely tautological.
 /* istanbul ignore next */
-@polyfill
-export class HTMLTable extends AbstractPureComponent2<IHTMLTableProps> {
+
+export class HTMLTable extends AbstractPureComponent<HTMLTableProps> {
     public render() {
         // eslint-disable-next-line deprecation/deprecation
-        const { bordered, className, condensed, elementRef, interactive, small, striped, ...htmlProps } = this.props;
+        const { bordered, className, condensed, elementRef, interactive, striped, ...htmlProps } = this.props;
         const classes = classNames(
             Classes.HTML_TABLE,
             {
@@ -57,7 +47,6 @@ export class HTMLTable extends AbstractPureComponent2<IHTMLTableProps> {
                 [Classes.HTML_TABLE_CONDENSED]: condensed,
                 [Classes.HTML_TABLE_STRIPED]: striped,
                 [Classes.INTERACTIVE]: interactive,
-                [Classes.SMALL]: small,
             },
             className,
         );

@@ -17,25 +17,22 @@ import classNames from "classnames";
 import React from "react";
 
 import {
-    AbstractPureComponent2,
+    AbstractPureComponent,
     Classes as CoreClasses,
     DISPLAYNAME_PREFIX,
-    IPopoverProps,
-    ITagInputProps,
+    TagInputProps,
     Keys,
-    Popover,
-    PopoverInteractionKind,
-    Position,
     TagInput,
     TagInputAddMethod,
 } from "@blueprintjs/core";
+import { Popover2, Popover2Props } from "@blueprintjs/popover2";
 
-import { Classes, IListItemsProps } from "../../common";
-import { IQueryListRendererProps, QueryList } from "../query-list/queryList";
+import { Classes, ListItemsProps } from "../../common";
+import { QueryListRendererProps, QueryList } from "../query-list/queryList";
 
 // N.B. selectedItems should really be a required prop, but is left optional for backwards compatibility
 
-export interface IMultiSelectProps<T> extends IListItemsProps<T> {
+export interface MultiSelectProps<T> extends ListItemsProps<T> {
     /**
      * Whether the component should take up the full width of its container.
      * This overrides `popoverProps.fill` and `tagInputProps.fill`.
@@ -75,24 +72,24 @@ export interface IMultiSelectProps<T> extends IListItemsProps<T> {
 
     /** Props to spread to `Popover`. Note that `content` cannot be changed. */
     // eslint-disable-next-line @typescript-eslint/ban-types
-    popoverProps?: Partial<IPopoverProps> & object;
+    popoverProps?: Partial<Popover2Props> & object;
 
     /** Controlled selected values. */
     selectedItems?: T[];
 
     /** Props to spread to `TagInput`. Use `query` and `onQueryChange` to control the input. */
     // eslint-disable-next-line @typescript-eslint/ban-types
-    tagInputProps?: Partial<ITagInputProps> & object;
+    tagInputProps?: Partial<TagInputProps> & object;
 
     /** Custom renderer to transform an item into tag content. */
     tagRenderer: (item: T) => React.ReactNode;
 }
 
-export interface IMultiSelectState {
+export interface MultiSelectState {
     isOpen: boolean;
 }
 
-export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>, IMultiSelectState> {
+export class MultiSelect<T> extends AbstractPureComponent<MultiSelectProps<T>, MultiSelectState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.MultiSelect`;
 
     public static defaultProps = {
@@ -101,10 +98,10 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
     };
 
     public static ofType<U>() {
-        return MultiSelect as new (props: IMultiSelectProps<U>) => MultiSelect<U>;
+        return MultiSelect as new (props: MultiSelectProps<U>) => MultiSelect<U>;
     }
 
-    public state: IMultiSelectState = {
+    public state: MultiSelectState = {
         isOpen: (this.props.popoverProps && this.props.popoverProps.isOpen) || false,
     };
 
@@ -137,7 +134,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
         );
     }
 
-    private renderQueryList = (listProps: IQueryListRendererProps<T>) => {
+    private renderQueryList = (listProps: QueryListRendererProps<T>) => {
         const { fill, tagInputProps = {}, popoverProps = {}, selectedItems = [], placeholder } = this.props;
         const { handlePaste, handleKeyDown, handleKeyUp } = listProps;
 
@@ -159,16 +156,20 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
         };
 
         return (
-            /* eslint-disable-next-line deprecation/deprecation */
-            <Popover
+            <Popover2
                 autoFocus={false}
                 canEscapeKeyClose={true}
                 enforceFocus={false}
                 isOpen={this.state.isOpen}
-                position={Position.BOTTOM_LEFT}
+                placement="bottom-start"
                 {...popoverProps}
                 className={classNames(listProps.className, popoverProps.className)}
-                interactionKind={PopoverInteractionKind.CLICK}
+                content={
+                    <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
+                        {listProps.itemList}
+                    </div>
+                }
+                interactionKind="click"
                 onInteraction={this.handlePopoverInteraction}
                 popoverClassName={classNames(Classes.MULTISELECT_POPOVER, popoverProps.popoverClassName)}
                 onOpened={this.handlePopoverOpened}
@@ -191,11 +192,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
                         values={selectedItems.map(this.props.tagRenderer)}
                     />
                 </div>
-                <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
-                    {listProps.itemList}
-                </div>
-                {/* eslint-disable-next-line deprecation/deprecation */}
-            </Popover>
+            </Popover2>
         );
     };
 

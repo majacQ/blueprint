@@ -19,7 +19,17 @@ import { Elevation } from "./elevation";
 import { Intent } from "./intent";
 import { Position } from "./position";
 
-const NS = process.env.BLUEPRINT_NAMESPACE || process.env.REACT_APP_BLUEPRINT_NAMESPACE || "bp3";
+// injected by webpack.DefinePlugin
+declare let BLUEPRINT_NAMESPACE: string | undefined;
+declare let REACT_APP_BLUEPRINT_NAMESPACE: string | undefined;
+
+let NS = "bp4";
+
+if (typeof BLUEPRINT_NAMESPACE !== "undefined") {
+    NS = BLUEPRINT_NAMESPACE;
+} else if (typeof REACT_APP_BLUEPRINT_NAMESPACE !== "undefined") {
+    NS = REACT_APP_BLUEPRINT_NAMESPACE;
+}
 
 // modifiers
 export const ACTIVE = `${NS}-active`;
@@ -77,6 +87,10 @@ export const LIST = `${NS}-list`;
 export const LIST_UNSTYLED = `${NS}-list-unstyled`;
 export const RTL = `${NS}-rtl`;
 
+// layout utilities
+/** @see https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block */
+export const FIXED_POSITIONING_CONTAINING_BLOCK = `${NS}-fixed-positioning-containing-block`;
+
 // components
 export const ALERT = `${NS}-alert`;
 export const ALERT_BODY = `${ALERT}-body`;
@@ -100,8 +114,6 @@ export const CARD = `${NS}-card`;
 
 export const COLLAPSE = `${NS}-collapse`;
 export const COLLAPSE_BODY = `${COLLAPSE}-body`;
-
-export const COLLAPSIBLE_LIST = `${NS}-collapse-list`;
 
 export const CONTEXT_MENU = `${NS}-context-menu`;
 export const CONTEXT_MENU_POPOVER_TARGET = `${CONTEXT_MENU}-popover-target`;
@@ -137,8 +149,6 @@ export const EDITABLE_TEXT_PLACEHOLDER = `${EDITABLE_TEXT}-placeholder`;
 export const FLEX_EXPANDER = `${NS}-flex-expander`;
 
 export const HTML_SELECT = `${NS}-html-select`;
-/** @deprecated prefer `<HTMLSelect>` component */
-export const SELECT = `${NS}-select`;
 
 export const HTML_TABLE = `${NS}-html-table`;
 export const HTML_TABLE_BORDERED = `${HTML_TABLE}-bordered`;
@@ -216,11 +226,6 @@ export const PANEL_STACK_HEADER = `${PANEL_STACK}-header`;
 export const PANEL_STACK_HEADER_BACK = `${PANEL_STACK}-header-back`;
 export const PANEL_STACK_VIEW = `${PANEL_STACK}-view`;
 
-export const PANEL_STACK2 = `${NS}-panel-stack2`;
-export const PANEL_STACK2_HEADER = `${PANEL_STACK}-header`;
-export const PANEL_STACK2_HEADER_BACK = `${PANEL_STACK}-header-back`;
-export const PANEL_STACK2_VIEW = `${PANEL_STACK}-view`;
-
 export const POPOVER = `${NS}-popover`;
 export const POPOVER_ARROW = `${POPOVER}-arrow`;
 export const POPOVER_BACKDROP = `${POPOVER}-backdrop`;
@@ -295,14 +300,12 @@ export const TREE_NODE_SELECTED = `${TREE_NODE}-selected`;
 export const TREE_ROOT = `${NS}-tree-root`;
 
 export const ICON = `${NS}-icon`;
-/** @deprecated use <Icon> components and iconName prop APIs instead */
 export const ICON_STANDARD = `${ICON}-standard`;
-/** @deprecated use <Icon> components and iconName prop APIs instead */
 export const ICON_LARGE = `${ICON}-large`;
 
 /**
  * Returns the namespace prefix for all Blueprint CSS classes.
- * Customize this namespace at build time with the `process.env.BLUEPRINT_NAMESPACE` environment variable.
+ * Customize this namespace at build time by defining it with `webpack.DefinePlugin`.
  */
 export function getClassNamespace() {
     return NS;
@@ -332,11 +335,6 @@ export function elevationClass(elevation: Elevation | undefined) {
 
 /**
  * Returns CSS class for icon name.
- *
- * @deprecated These CSS classes rely on Blueprint's icon fonts, which are a legacy feature and will be
- * removed the next major version (4.x). Use the `<Icon>` React component and `iconName` string enum prop
- * APIs instead – they render SVGs, which do not suffer from the blurriness of icon fonts and have
- * equivalent browser support.
  */
 export function iconClass(iconName: string): string;
 export function iconClass(iconName: undefined): undefined;

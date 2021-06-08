@@ -19,18 +19,16 @@ import React from "react";
 import {
     DISPLAYNAME_PREFIX,
     EditableText,
-    Hotkey,
-    Hotkeys,
     HotkeysTarget,
-    IEditableTextProps,
+    EditableTextProps,
     Utils as CoreUtils,
 } from "@blueprintjs/core";
 
 import * as Classes from "../common/classes";
 import { Draggable } from "../interactions/draggable";
-import { Cell, ICellProps } from "./cell";
+import { Cell, CellProps } from "./cell";
 
-export interface IEditableCellProps extends ICellProps {
+export interface EditableCellProps extends CellProps {
     /**
      * Whether the given cell is the current active/focused cell.
      */
@@ -70,22 +68,20 @@ export interface IEditableCellProps extends ICellProps {
     /**
      * Props that should be passed to the EditableText when it is used to edit
      */
-    editableTextProps?: IEditableTextProps;
+    editableTextProps?: EditableTextProps;
 }
 
-export interface IEditableCellState {
+export interface EditableCellState {
     isEditing?: boolean;
     savedValue?: string;
     dirtyValue?: string;
 }
 
-// HACKHACK(adahiya): fix for Blueprint 4.0
-// eslint-disable-next-line deprecation/deprecation
-@HotkeysTarget
-export class EditableCell extends React.Component<IEditableCellProps, IEditableCellState> {
+export class EditableCell extends React.Component<EditableCellProps, EditableCellState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.EditableCell`;
 
     public static defaultProps = {
+        tabIndex: 0,
         truncated: true,
         wrapText: false,
     };
@@ -98,8 +94,8 @@ export class EditableCell extends React.Component<IEditableCellProps, IEditableC
         },
     };
 
-    public constructor(props: IEditableCellProps, context?: any) {
-        super(props, context);
+    public constructor(props: EditableCellProps) {
+        super(props);
         this.state = {
             isEditing: false,
             savedValue: props.value,
@@ -110,7 +106,7 @@ export class EditableCell extends React.Component<IEditableCellProps, IEditableC
         this.checkShouldFocus();
     }
 
-    public componentDidUpdate(prevProps: IEditableCellProps) {
+    public componentDidUpdate(prevProps: EditableCellProps) {
         const didPropsChange =
             !CoreUtils.shallowCompareKeys(this.props, prevProps, { exclude: ["style"] }) ||
             !CoreUtils.deepCompareKeys(this.props, prevProps, ["style"]);
@@ -123,7 +119,7 @@ export class EditableCell extends React.Component<IEditableCellProps, IEditableC
         this.checkShouldFocus();
     }
 
-    public shouldComponentUpdate(nextProps: IEditableCellProps, nextState: IEditableCellState) {
+    public shouldComponentUpdate(nextProps: EditableCellProps, nextState: EditableCellState) {
         return (
             !CoreUtils.shallowCompareKeys(this.props, nextProps, { exclude: ["style"] }) ||
             !CoreUtils.shallowCompareKeys(this.state, nextState) ||
@@ -174,40 +170,41 @@ export class EditableCell extends React.Component<IEditableCellProps, IEditableC
         }
 
         return (
-            <Cell
-                {...spreadableProps}
-                wrapText={wrapText}
-                truncated={false}
-                interactive={interactive}
-                cellRef={this.refHandlers.cell}
-                onKeyPress={this.handleKeyPress}
-            >
-                <Draggable
-                    onActivate={this.handleCellActivate}
-                    onDoubleClick={this.handleCellDoubleClick}
-                    preventDefault={false}
-                    stopPropagation={interactive}
-                >
-                    {cellContents}
-                </Draggable>
-            </Cell>
+            <HotkeysTarget hotkeys={this.getHotkeys()}>
+                {({ handleKeyDown, handleKeyUp }) => (
+                    <Cell
+                        {...spreadableProps}
+                        wrapText={wrapText}
+                        truncated={false}
+                        interactive={interactive}
+                        cellRef={this.refHandlers.cell}
+                        onKeyPress={this.handleKeyPress}
+                        onKeyDown={handleKeyDown}
+                        onKeyUp={handleKeyUp}
+                    >
+                        <Draggable
+                            onActivate={this.handleCellActivate}
+                            onDoubleClick={this.handleCellDoubleClick}
+                            preventDefault={false}
+                            stopPropagation={interactive}
+                        >
+                            {cellContents}
+                        </Draggable>
+                    </Cell>
+                )}
+            </HotkeysTarget>
         );
     }
 
-    public renderHotkeys() {
-        const { tabIndex } = this.props;
-
-        return (
-            <Hotkeys tabIndex={tabIndex}>
-                <Hotkey
-                    key="edit-cell"
-                    label="Edit the currently focused cell"
-                    group="Table"
-                    combo="f2"
-                    onKeyDown={this.handleEdit}
-                />
-            </Hotkeys>
-        );
+    private getHotkeys() {
+        return [
+            {
+                combo: "f2",
+                group: "Table",
+                label: "Edit the currently focused cell",
+                onKeyDown: this.handleEdit,
+            },
+        ];
     }
 
     private checkShouldFocus() {

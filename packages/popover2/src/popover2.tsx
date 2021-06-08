@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { State as PopperState } from "@popperjs/core";
+import { State as PopperState, PositioningStrategy } from "@popperjs/core";
 import classNames from "classnames";
 import React from "react";
 import { Manager, Popper, PopperChildrenProps, Reference, ReferenceChildrenProps, StrictModifier } from "react-popper";
 
 import {
-    AbstractPureComponent2,
+    AbstractPureComponent,
     Classes as CoreClasses,
     combineRefs,
     DISPLAYNAME_PREFIX,
@@ -34,7 +34,7 @@ import {
 import * as Classes from "./classes";
 import * as Errors from "./errors";
 import { POPOVER_ARROW_SVG_SIZE, Popover2Arrow } from "./popover2Arrow";
-import { IPopover2SharedProps } from "./popover2SharedProps";
+import { Popover2SharedProps } from "./popover2SharedProps";
 // eslint-disable-next-line import/no-cycle
 import { Tooltip2 } from "./tooltip2";
 import { getBasePlacement, getTransformOrigin } from "./utils";
@@ -48,7 +48,7 @@ export const Popover2InteractionKind = {
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type Popover2InteractionKind = typeof Popover2InteractionKind[keyof typeof Popover2InteractionKind];
 
-export interface IPopover2Props<TProps = React.HTMLProps<HTMLElement>> extends IPopover2SharedProps<TProps> {
+export interface Popover2Props<TProps = React.HTMLProps<HTMLElement>> extends Popover2SharedProps<TProps> {
     /** HTML props for the backdrop element. Can be combined with `backdropClassName`. */
     backdropProps?: React.HTMLProps<HTMLDivElement>;
 
@@ -86,9 +86,17 @@ export interface IPopover2Props<TProps = React.HTMLProps<HTMLElement>> extends I
      * Ref supplied to the `Classes.POPOVER` element.
      */
     popoverRef?: (ref: HTMLElement | null) => void;
+
+    /**
+     * Popper.js positioning strategy.
+     *
+     * @see https://popper.js.org/docs/v2/constructors/#strategy
+     * @default "absolute"
+     */
+    positioningStrategy?: PositioningStrategy;
 }
 
-export interface IPopover2State {
+export interface Popover2State {
     isOpen: boolean;
     hasDarkParent: boolean;
 }
@@ -96,12 +104,12 @@ export interface IPopover2State {
 /**
  * @template T target component props inteface
  */
-export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopover2State> {
+export class Popover2<T> extends AbstractPureComponent<Popover2Props<T>, Popover2State> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Popover2`;
 
     private popoverRef = Utils.createReactRef<HTMLDivElement>();
 
-    public static defaultProps: IPopover2Props = {
+    public static defaultProps: Popover2Props = {
         boundary: "clippingParents",
         captureDismiss: false,
         defaultIsOpen: false,
@@ -115,13 +123,14 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
         minimal: false,
         openOnTargetFocus: true,
         placement: "auto",
+        positioningStrategy: "absolute",
         renderTarget: undefined as any,
         targetTagName: "span",
         transitionDuration: 300,
         usePortal: true,
     };
 
-    public state: IPopover2State = {
+    public state: Popover2State = {
         hasDarkParent: false,
         isOpen: this.getIsOpen(this.props),
     };
@@ -169,7 +178,7 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
         );
     };
 
-    private getIsOpen(props: IPopover2Props<T>) {
+    private getIsOpen(props: Popover2Props<T>) {
         // disabled popovers should never be allowed to open.
         if (props.disabled) {
             return false;
@@ -200,7 +209,7 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
                 <Popper
                     innerRef={this.refHandlers.popover}
                     placement={this.props.placement}
-                    strategy="absolute"
+                    strategy={this.props.positioningStrategy}
                     modifiers={this.computePopperModifiers()}
                 >
                     {this.renderPopover}
@@ -213,7 +222,7 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
         this.updateDarkParent();
     }
 
-    public componentDidUpdate(props: IPopover2Props<T>, state: IPopover2State) {
+    public componentDidUpdate(props: Popover2Props<T>, state: Popover2State) {
         super.componentDidUpdate(props, state);
         this.updateDarkParent();
 
@@ -230,7 +239,7 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
         }
     }
 
-    protected validateProps(props: IPopover2Props & { children?: React.ReactNode }) {
+    protected validateProps(props: Popover2Props & { children?: React.ReactNode }) {
         if (props.isOpen == null && props.onInteraction != null) {
             console.warn(Errors.POPOVER2_WARN_UNCONTROLLED_ONINTERACTION);
         }
@@ -291,6 +300,8 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
                   // CLICK needs only one handler
                   onClick: this.handleTargetClick,
               };
+        // Ensure target is focusable if relevant prop enabled
+        const targetTabIndex = openOnTargetFocus && isHoverInteractionKind ? 0 : undefined;
         const targetProps = {
             // N.B. this.props.className is passed along to renderTarget even though the user would have access to it.
             // If, instead, renderTarget is undefined and the target is provided as a child, this.props.className is
@@ -301,9 +312,6 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
                 [CoreClasses.ACTIVE]: !isControlled && isOpen && !isHoverInteractionKind,
             }),
             ref,
-            // Ensure target is focusable if relevant prop enabled. When renderTarget is undefined, we apply
-            // tabIndex to the wrapper because that's the element which has event handlers.
-            tabIndex: openOnTargetFocus && isHoverInteractionKind ? 0 : undefined,
             ...((targetEventHandlers as unknown) as T),
         };
 
@@ -315,18 +323,13 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
                 // if the consumer renders a tooltip target, it's their responsibility to disable that tooltip
                 // when *this* popover is open
                 isOpen,
+                tabIndex: targetTabIndex,
             });
         } else {
             const childTarget = Utils.ensureElement(React.Children.toArray(children)[0])!;
 
             if (childTarget === undefined) {
                 return null;
-            }
-
-            // if there is a tabIndex set on the child target, we are going to promote it to the wrapper element
-            const childTargetTabIndex = childTarget.props.tabIndex;
-            if (childTargetTabIndex != null) {
-                targetProps.tabIndex = childTargetTabIndex;
             }
 
             const targetModifierClasses = {
@@ -340,8 +343,7 @@ export class Popover2<T> extends AbstractPureComponent2<IPopover2Props<T>, IPopo
                 className: classNames(childTarget.props.className, targetModifierClasses),
                 // force disable single Tooltip2 child when popover is open
                 disabled: isOpen && Utils.isElementOfType(childTarget, Tooltip2) ? true : childTarget.props.disabled,
-                // avoid having two nested elements which are focussable via keyboard navigation
-                tabIndex: targetProps.tabIndex !== undefined ? -1 : undefined,
+                tabIndex: childTarget.props.tabIndex ?? targetTabIndex,
             });
             const wrappedTarget = React.createElement(targetTagName!, targetProps, clonedTarget);
             target = wrappedTarget;

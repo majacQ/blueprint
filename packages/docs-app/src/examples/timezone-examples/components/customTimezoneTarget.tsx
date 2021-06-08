@@ -17,25 +17,24 @@
 import React from "react";
 
 import { Colors, Icon, Intent } from "@blueprintjs/core";
-import { IconNames } from "@blueprintjs/icons";
 import { Tooltip2 } from "@blueprintjs/popover2";
 import { getTimezoneMetadata } from "@blueprintjs/timezone";
 
-export interface ICustomTimezonePickerTargetProps {
+export interface CustomTimezonePickerTargetProps {
     timezone: string;
 }
 
-export interface ICustomTimezonePickerTargetState {
+export interface CustomTimezonePickerTargetState {
     isHovering: boolean;
 }
 
 // This is a little component that isn't meant to see the light of day outside
 // the TimezonePickerExample. Coding style is thus a *little* scrappy.
 export class CustomTimezonePickerTarget extends React.PureComponent<
-    ICustomTimezonePickerTargetProps,
-    ICustomTimezonePickerTargetState
+    CustomTimezonePickerTargetProps,
+    CustomTimezonePickerTargetState
 > {
-    public state: ICustomTimezonePickerTargetState = {
+    public state: CustomTimezonePickerTargetState = {
         isHovering: false,
     };
 
@@ -48,9 +47,9 @@ export class CustomTimezonePickerTarget extends React.PureComponent<
                     onMouseLeave={this.handleMouseLeave}
                     style={{ cursor: "pointer" }}
                 >
-                    <Icon icon={IconNames.GLOBE} intent={isHovering ? Intent.PRIMARY : undefined} />
+                    <Icon icon="globe" intent={isHovering ? Intent.PRIMARY : undefined} />
                     &nbsp;
-                    <Icon color={Colors.GRAY1} icon={IconNames.CARET_DOWN} />
+                    <Icon color={Colors.GRAY1} icon="caret-down" />
                 </div>
             </Tooltip2>
         );

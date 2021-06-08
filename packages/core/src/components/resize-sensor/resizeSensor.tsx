@@ -17,18 +17,21 @@
   <<<<<<< ad/fix-webpack
 import React from "react";
 import { findDOMNode } from "react-dom";
+  <<<<<<< ad/fix-webpack
   =======
 import * as React from "react";
   >>>>>>> ad/reduce-find-dom-node
 import { polyfill } from "react-lifecycles-compat";
+  =======
+  >>>>>>> v4
 import ResizeObserver from "resize-observer-polyfill";
 
-import { AbstractPureComponent2 } from "../../common";
+import { AbstractPureComponent } from "../../common";
 import { DISPLAYNAME_PREFIX } from "../../common/props";
-import { IResizeEntry } from "./resizeObserverTypes";
+import { ResizeEntry } from "./resizeObserverTypes";
 
 /** `ResizeSensor` requires a single DOM element child and will error otherwise. */
-export interface IResizeSensorProps {
+export interface ResizeSensorProps {
     /**
      * Callback invoked when the wrapped element resizes.
      *
@@ -39,7 +42,7 @@ export interface IResizeSensorProps {
      * Note that this method is called _asynchronously_ after a resize is
      * detected and typically it will be called no more than once per frame.
      */
-    onResize: (entries: IResizeEntry[]) => void;
+    onResize: (entries: ResizeEntry[]) => void;
 
     /**
      * If `true`, all parent DOM elements of the container will also be
@@ -55,8 +58,7 @@ export interface IResizeSensorProps {
     observeParents?: boolean;
 }
 
-@polyfill
-export class ResizeSensor extends AbstractPureComponent2<IResizeSensorProps> {
+export class ResizeSensor extends AbstractPureComponent<ResizeSensorProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.ResizeSensor`;
 
     private element: Element | null = null;
@@ -81,7 +83,7 @@ export class ResizeSensor extends AbstractPureComponent2<IResizeSensorProps> {
         this.observeElement();
     }
 
-    public componentDidUpdate(prevProps: IResizeSensorProps) {
+    public componentDidUpdate(prevProps: ResizeSensorProps) {
         this.observeElement(this.props.observeParents !== prevProps.observeParents);
     }
 

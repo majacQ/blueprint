@@ -22,7 +22,7 @@ import { Classes, ContextMenuTarget, Icon, IconName, Menu, MenuItem } from "@blu
 
 import { ClickToCopy } from "./clickToCopy";
 
-export interface IDocsIconProps {
+export interface DocsIconProps {
     displayName: string;
     group: string;
     iconName: IconName;
@@ -37,12 +37,12 @@ function downloadIconFile(iconName: IconName, iconSize: 16 | 20) {
 
 // eslint-disable-next-line deprecation/deprecation
 @ContextMenuTarget
-export class DocsIcon extends React.PureComponent<IDocsIconProps> {
+export class DocsIcon extends React.PureComponent<DocsIconProps> {
     public render() {
         const { iconName, displayName, tags } = this.props;
         return (
             <ClickToCopy className="docs-icon" data-tags={tags} value={iconName}>
-                <Icon icon={iconName} iconSize={Icon.SIZE_LARGE} />
+                <Icon icon={iconName} size={Icon.SIZE_LARGE} />
                 <div className="docs-icon-name">{displayName}</div>
                 <div className="docs-icon-detail">
                     <p className="docs-code">{iconName}</p>
@@ -61,12 +61,12 @@ export class DocsIcon extends React.PureComponent<IDocsIconProps> {
         return (
             <Menu>
                 <MenuItem
-                    icon={<Icon icon={iconName} iconSize={Icon.SIZE_STANDARD} />}
+                    icon={<Icon icon={iconName} size={Icon.SIZE_STANDARD} />}
                     text="Download 16px SVG"
                     onClick={this.handleClick16}
                 />
                 <MenuItem
-                    icon={<Icon icon={iconName} iconSize={Icon.SIZE_LARGE} />}
+                    icon={<Icon icon={iconName} size={Icon.SIZE_LARGE} />}
                     text="Download 20px SVG"
                     onClick={this.handleClick20}
                 />

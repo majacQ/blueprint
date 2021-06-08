@@ -16,32 +16,20 @@
 
 import classNames from "classnames";
 import React from "react";
-import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, IRef } from "../../common";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
-import { MenuDivider } from "./menuDivider";
-// this cyclic import can be removed in v4.0 (https://github.com/palantir/blueprint/issues/3829)
-// eslint-disable-next-line import/no-cycle
-import { MenuItem } from "./menuItem";
+import { AbstractPureComponent, Classes, Ref } from "../../common";
+import { DISPLAYNAME_PREFIX, Props } from "../../common/props";
 
-export interface IMenuProps extends IProps, React.HTMLAttributes<HTMLUListElement> {
+export interface MenuProps extends Props, React.HTMLAttributes<HTMLUListElement> {
     /** Whether the menu items in this menu should use a large appearance. */
     large?: boolean;
 
     /** Ref handler that receives the HTML `<ul>` element backing this component. */
-    ulRef?: IRef<HTMLUListElement>;
+    ulRef?: Ref<HTMLUListElement>;
 }
 
-@polyfill
-export class Menu extends AbstractPureComponent2<IMenuProps> {
+export class Menu extends AbstractPureComponent<MenuProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Menu`;
-
-    /** @deprecated use MenuDivider */
-    public static Divider = MenuDivider;
-
-    /** @deprecated use MenuItem*/
-    public static Item = MenuItem;
 
     public render() {
         const { className, children, large, ulRef, ...htmlProps } = this.props;

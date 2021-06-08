@@ -17,17 +17,16 @@
 import classNames from "classnames";
 import React from "react";
 import ReactDOM from "react-dom";
-import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, Position } from "../../common";
+import { AbstractPureComponent, Classes, Position } from "../../common";
 import { TOASTER_CREATE_NULL, TOASTER_MAX_TOASTS_INVALID, TOASTER_WARN_INLINE } from "../../common/errors";
 import { ESCAPE } from "../../common/keys";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
+import { DISPLAYNAME_PREFIX, Props } from "../../common/props";
 import { isNodeEnv } from "../../common/utils";
 import { Overlay } from "../overlay/overlay";
-import { IToastProps, Toast } from "./toast";
+import { ToastProps, Toast } from "./toast";
 
-export type IToastOptions = IToastProps & { key: string };
+export type ToastOptions = ToastProps & { key: string };
 export type ToasterPosition =
     | typeof Position.TOP
     | typeof Position.TOP_LEFT
@@ -37,13 +36,13 @@ export type ToasterPosition =
     | typeof Position.BOTTOM_RIGHT;
 
 /** Instance methods available on a `<Toaster>` component instance. */
-export interface IToaster {
+export interface ToasterInstance {
     /**
      * Shows a new toast to the user, or updates an existing toast corresponding to the provided key (optional).
      *
      * Returns the unique key of the toast.
      */
-    show(props: IToastProps, key?: string): string;
+    show(props: ToastProps, key?: string): string;
 
     /** Dismiss the given toast instantly. */
     dismiss(key: string): void;
@@ -52,14 +51,14 @@ export interface IToaster {
     clear(): void;
 
     /** Returns the props for all current toasts. */
-    getToasts(): IToastOptions[];
+    getToasts(): ToastOptions[];
 }
 
 /**
  * Props supported by the `<Toaster>` component.
  * These props can be passed as an argument to the static `Toaster.create(props?, container?)` method.
  */
-export interface IToasterProps extends IProps {
+export interface ToasterProps extends Props {
     /**
      * Whether a toast should acquire application focus when it first opens.
      * This is disabled by default so that toasts do not interrupt the user's flow.
@@ -104,15 +103,14 @@ export interface IToasterProps extends IProps {
     maxToasts?: number;
 }
 
-export interface IToasterState {
-    toasts: IToastOptions[];
+export interface ToasterState {
+    toasts: ToastOptions[];
 }
 
-@polyfill
-export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState> implements IToaster {
+export class Toaster extends AbstractPureComponent<ToasterProps, ToasterState> implements ToasterInstance {
     public static displayName = `${DISPLAYNAME_PREFIX}.Toaster`;
 
-    public static defaultProps: IToasterProps = {
+    public static defaultProps: ToasterProps = {
         autoFocus: false,
         canEscapeKeyClear: true,
         position: Position.TOP,
@@ -123,13 +121,13 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
      * Create a new `Toaster` instance that can be shared around your application.
      * The `Toaster` will be rendered into a new element appended to the given container.
      */
-    public static create(props?: IToasterProps, container = document.body): IToaster {
+    public static create(props?: ToasterProps, container = document.body): ToasterInstance {
         if (props != null && props.usePortal != null && !isNodeEnv("production")) {
             console.warn(TOASTER_WARN_INLINE);
         }
         const containerElement = document.createElement("div");
         container.appendChild(containerElement);
-        const toaster = ReactDOM.render<IToasterProps>(
+        const toaster = ReactDOM.render<ToasterProps>(
             <Toaster {...props} usePortal={false} />,
             containerElement,
         ) as Toaster;
@@ -139,14 +137,14 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
         return toaster;
     }
 
-    public state: IToasterState = {
+    public state: ToasterState = {
         toasts: [],
     };
 
     // auto-incrementing identifier for un-keyed toasts
     private toastId = 0;
 
-    public show(props: IToastProps, key?: string) {
+    public show(props: ToastProps, key?: string) {
         if (this.props.maxToasts) {
             // check if active number of toasts are at the maxToasts limit
             this.dismissIfAtLimit();
@@ -186,7 +184,6 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
     }
 
     public render() {
-        // $pt-transition-duration * 3 + $pt-transition-duration / 2
         const classes = classNames(Classes.TOAST_CONTAINER, this.getPositionClasses(), this.props.className);
         return (
             <Overlay
@@ -198,6 +195,7 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
                 hasBackdrop={false}
                 isOpen={this.state.toasts.length > 0 || this.props.children != null}
                 onClose={this.handleClose}
+                // $pt-transition-duration * 3 + $pt-transition-duration / 2
                 transitionDuration={350}
                 transitionName={Classes.TOAST}
                 usePortal={this.props.usePortal}
@@ -208,7 +206,7 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
         );
     }
 
-    protected validateProps({ maxToasts }: IToasterProps) {
+    protected validateProps({ maxToasts }: ToasterProps) {
         // maximum number of toasts should not be a number less than 1
         if (maxToasts !== undefined && maxToasts < 1) {
             throw new Error(TOASTER_MAX_TOASTS_INVALID);
@@ -226,11 +224,11 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
         }
     }
 
-    private renderToast = (toast: IToastOptions) => {
+    private renderToast = (toast: ToastOptions) => {
         return <Toast {...toast} onDismiss={this.getDismissHandler(toast)} />;
     };
 
-    private createToastOptions(props: IToastProps, key = `toast-${this.toastId++}`) {
+    private createToastOptions(props: ToastProps, key = `toast-${this.toastId++}`) {
         // clone the object before adding the key prop to avoid leaking the mutation
         return { ...props, key };
     }
@@ -238,10 +236,13 @@ export class Toaster extends AbstractPureComponent2<IToasterProps, IToasterState
     private getPositionClasses() {
         const positions = this.props.position!.split("-");
         // NOTE that there is no -center class because that's the default style
-        return positions.map(p => `${Classes.TOAST_CONTAINER}-${p.toLowerCase()}`);
+        return [
+            ...positions.map(p => `${Classes.TOAST_CONTAINER}-${p.toLowerCase()}`),
+            `${Classes.TOAST_CONTAINER}-${this.props.usePortal ? "in-portal" : "inline"}`,
+        ];
     }
 
-    private getDismissHandler = (toast: IToastOptions) => (timeoutExpired: boolean) => {
+    private getDismissHandler = (toast: ToastOptions) => (timeoutExpired: boolean) => {
         this.dismiss(toast.key, timeoutExpired);
     };
 

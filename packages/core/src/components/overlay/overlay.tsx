@@ -17,17 +17,14 @@
 import classNames from "classnames";
 import React from "react";
 import { findDOMNode } from "react-dom";
-import { polyfill } from "react-lifecycles-compat";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
-// tslint:disable-next-line no-submodule-imports
-import { CSSTransitionProps } from "react-transition-group/CSSTransition";
 
-import { AbstractPureComponent2, Classes, Keys } from "../../common";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
-import { isFunction, LifecycleCompatPolyfill } from "../../common/utils";
+import { AbstractPureComponent, Classes, Keys } from "../../common";
+import { DISPLAYNAME_PREFIX, Props } from "../../common/props";
+import { isFunction } from "../../common/utils";
 import { Portal } from "../portal/portal";
 
-export interface IOverlayableProps extends IOverlayLifecycleProps {
+export interface OverlayableProps extends OverlayLifecycleProps {
     /**
      * Whether the overlay should acquire application focus when it first opens.
      *
@@ -112,7 +109,7 @@ export interface IOverlayableProps extends IOverlayLifecycleProps {
     onClose?: (event: React.SyntheticEvent<HTMLElement>) => void;
 }
 
-export interface IOverlayLifecycleProps {
+export interface OverlayLifecycleProps {
     /**
      * Lifecycle method invoked just before the CSS _close_ transition begins on
      * a child. Receives the DOM element of the child being closed.
@@ -140,7 +137,7 @@ export interface IOverlayLifecycleProps {
     onOpened?: (node: HTMLElement) => void;
 }
 
-export interface IBackdropProps {
+export interface BackdropProps {
     /** CSS class names to apply to backdrop element. */
     backdropClassName?: string;
 
@@ -163,7 +160,7 @@ export interface IBackdropProps {
     hasBackdrop?: boolean;
 }
 
-export interface IOverlayProps extends IOverlayableProps, IBackdropProps, IProps {
+export interface OverlayProps extends OverlayableProps, BackdropProps, Props {
     /**
      * Toggles the visibility of the overlay and its children.
      * This prop is required because the component is controlled.
@@ -179,16 +176,14 @@ export interface IOverlayProps extends IOverlayableProps, IBackdropProps, IProps
     transitionName?: string;
 }
 
-export interface IOverlayState {
+export interface OverlayState {
     hasEverOpened?: boolean;
 }
 
-// HACKHACK: https://github.com/palantir/blueprint/issues/4342
-@(polyfill as LifecycleCompatPolyfill<IOverlayProps, any>)
-export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState> {
+export class Overlay extends AbstractPureComponent<OverlayProps, OverlayState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Overlay`;
 
-    public static defaultProps: IOverlayProps = {
+    public static defaultProps: OverlayProps = {
         autoFocus: true,
         backdropProps: {},
         canEscapeKeyClose: true,
@@ -202,7 +197,7 @@ export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState
         usePortal: true,
     };
 
-    public static getDerivedStateFromProps({ isOpen: hasEverOpened }: IOverlayProps) {
+    public static getDerivedStateFromProps({ isOpen: hasEverOpened }: OverlayProps) {
         if (hasEverOpened) {
             return { hasEverOpened };
         }
@@ -213,7 +208,7 @@ export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState
 
     private static getLastOpened = () => Overlay.openStack[Overlay.openStack.length - 1];
 
-    public state: IOverlayState = {
+    public state: OverlayState = {
         hasEverOpened: this.props.isOpen,
     };
 
@@ -281,7 +276,7 @@ export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState
         }
     }
 
-    public componentDidUpdate(prevProps: IOverlayProps) {
+    public componentDidUpdate(prevProps: OverlayProps) {
         if (prevProps.isOpen && !this.props.isOpen) {
             this.overlayWillClose();
         } else if (!prevProps.isOpen && this.props.isOpen) {
@@ -343,14 +338,8 @@ export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState
             );
         const { onOpening, onOpened, onClosing, onClosed, transitionDuration, transitionName } = this.props;
 
-        // a breaking change in react-transition-group types requires us to be explicit about the type overload here,
-        // using a technique similar to Select.ofType() in @blueprintjs/select
-        const CSSTransitionImplicit = CSSTransition as new (
-            props: CSSTransitionProps<undefined>,
-        ) => CSSTransition<undefined>;
-
         return (
-            <CSSTransitionImplicit
+            <CSSTransition
                 classNames={transitionName}
                 onEntering={onOpening}
                 onEntered={onOpened}
@@ -360,7 +349,7 @@ export class Overlay extends AbstractPureComponent2<IOverlayProps, IOverlayState
                 addEndListener={this.handleTransitionAddEnd}
             >
                 {decoratedChild}
-            </CSSTransitionImplicit>
+            </CSSTransition>
         );
     };
 

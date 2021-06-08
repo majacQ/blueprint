@@ -1,7 +1,7 @@
 {
   <<<<<<< ad/fix-webpack
     "name": "@blueprintjs/core",
-    "version": "3.39.0",
+    "version": "3.41.0",
     "description": "Core styles & components",
     "main": "lib/cjs/index.js",
     "module": "lib/esm/index.js",
@@ -53,20 +53,26 @@
         "dom4": "^2.1.5",
         "normalize.css": "^8.0.1",
         "popper.js": "^1.16.1",
+  <<<<<<< ad/fix-webpack
         "react-lifecycles-compat": "^3.0.4",
         "react-popper": "^1.3.10",
         "react-transition-group": "^2.9.0",
+  =======
+        "react-popper": "^1.3.7",
+        "react-transition-group": "^4.4.1",
+  >>>>>>> v4
         "resize-observer-polyfill": "^1.5.1",
         "tslib": "~1.13.0"
     },
     "peerDependencies": {
-        "react": "^15.3.0 || 16 || 17",
-        "react-dom": "^15.3.0 || 16 || 17"
+        "react": "^16.8 || 17",
+        "react-dom": "^16.8 || 17"
     },
     "devDependencies": {
         "@blueprintjs/karma-build-scripts": "^2.0.0",
         "@blueprintjs/node-build-scripts": "^1.5.0",
-        "@blueprintjs/test-commons": "^0.10.8",
+        "@blueprintjs/test-commons": "^0.10.10",
+        "@testing-library/react": "^11.2.5",
         "enzyme": "^3.11.0",
         "karma": "^5.2.3",
         "mocha": "^8.2.1",

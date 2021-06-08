@@ -16,12 +16,11 @@
 
 import classNames from "classnames";
 import React from "react";
-import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, getRef, IRef, IRefObject, Keys, refHandler, Utils } from "../../common";
-import { DISPLAYNAME_PREFIX, HTMLInputProps, IIntentProps, IProps, MaybeElement } from "../../common/props";
+import { AbstractPureComponent, Classes, getRef, Ref, RefObject, Keys, refHandler, Utils } from "../../common";
+import { DISPLAYNAME_PREFIX, HTMLInputProps, IntentProps, Props, MaybeElement } from "../../common/props";
 import { Icon, IconName } from "../icon/icon";
-import { ITagProps, Tag } from "../tag/tag";
+import { TagProps, Tag } from "../tag/tag";
 
 /**
  * The method in which a `TagInput` value was added.
@@ -33,7 +32,7 @@ import { ITagProps, Tag } from "../tag/tag";
  */
 export type TagInputAddMethod = "default" | "blur" | "paste";
 
-export interface ITagInputProps extends IIntentProps, IProps {
+export interface TagInputProps extends IntentProps, Props {
     /**
      * If true, `onAdd` will be invoked when the input loses focus.
      * Otherwise, `onAdd` is only invoked when `enter` is pressed.
@@ -167,7 +166,7 @@ export interface ITagInputProps extends IIntentProps, IProps {
      * If you define `onRemove` here then you will have to implement your own tag removal
      * handling as `TagInput`'s own `onRemove` handler will never be invoked.
      */
-    tagProps?: ITagProps | ((value: React.ReactNode, index: number) => ITagProps);
+    tagProps?: TagProps | ((value: React.ReactNode, index: number) => TagProps);
 
     /**
      * Controlled tag values. Each value will be rendered inside a `Tag`, which can be customized
@@ -181,7 +180,7 @@ export interface ITagInputProps extends IIntentProps, IProps {
     values: React.ReactNode[];
 }
 
-export interface ITagInputState {
+export interface TagInputState {
     activeIndex: number;
     inputValue: string;
     isInputFocused: boolean;
@@ -191,11 +190,10 @@ export interface ITagInputState {
 /** special value for absence of active tag */
 const NONE = -1;
 
-@polyfill
-export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputState> {
+export class TagInput extends AbstractPureComponent<TagInputProps, TagInputState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.TagInput`;
 
-    public static defaultProps: Partial<ITagInputProps> = {
+    public static defaultProps: Partial<TagInputProps> = {
         addOnBlur: false,
         addOnPaste: true,
         inputProps: {},
@@ -204,9 +202,9 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
     };
 
     public static getDerivedStateFromProps(
-        props: Readonly<ITagInputProps>,
-        state: Readonly<ITagInputState>,
-    ): Partial<ITagInputState> | null {
+        props: Readonly<TagInputProps>,
+        state: Readonly<TagInputState>,
+    ): Partial<TagInputState> | null {
         if (props.inputValue !== state.prevInputValueProp) {
             return {
                 inputValue: props.inputValue,
@@ -216,15 +214,15 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
         return null;
     }
 
-    public state: ITagInputState = {
+    public state: TagInputState = {
         activeIndex: NONE,
         inputValue: this.props.inputValue || "",
         isInputFocused: false,
     };
 
-    public inputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public inputElement: HTMLInputElement | RefObject<HTMLInputElement> | null = null;
 
-    private handleRef: IRef<HTMLInputElement> = refHandler(this, "inputElement", this.props.inputRef);
+    private handleRef: Ref<HTMLInputElement> = refHandler(this, "inputElement", this.props.inputRef);
 
     public render() {
         const { className, disabled, fill, inputProps, intent, large, leftIcon, placeholder, values } = this.props;
@@ -252,7 +250,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
                 <Icon
                     className={Classes.TAG_INPUT_ICON}
                     icon={leftIcon}
-                    iconSize={isLarge ? Icon.SIZE_LARGE : Icon.SIZE_STANDARD}
+                    size={isLarge ? Icon.SIZE_LARGE : Icon.SIZE_STANDARD}
                 />
                 <div className={Classes.TAG_INPUT_VALUES}>
                     {values.map(this.maybeRenderTag)}
@@ -456,9 +454,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
     private removeIndexFromValues(index: number) {
         const { onChange, onRemove, values } = this.props;
         onRemove?.(values[index], index);
-        if (Utils.isFunction(onChange)) {
-            onChange(values.filter((_, i) => i !== index));
-        }
+        onChange?.(values.filter((_, i) => i !== index));
     }
 
     private invokeKeyPressCallback(

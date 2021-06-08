@@ -16,14 +16,13 @@
 
 import classNames from "classnames";
 import React from "react";
-import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes } from "../../common";
-import { DISPLAYNAME_PREFIX, HTMLDivProps, IProps } from "../../common/props";
+import { AbstractPureComponent, Classes } from "../../common";
+import { DISPLAYNAME_PREFIX, HTMLDivProps, Props } from "../../common/props";
 
 export type DialogStepId = string | number;
 
-export interface IDialogStepProps extends IProps, Omit<HTMLDivProps, "id" | "title" | "onClick"> {
+export interface DialogStepProps extends Props, Omit<HTMLDivProps, "id" | "title" | "onClick"> {
     /**
      * Unique identifier used to identify which step is selected.
      */
@@ -45,8 +44,7 @@ export interface IDialogStepProps extends IProps, Omit<HTMLDivProps, "id" | "tit
     title?: React.ReactNode;
 }
 
-@polyfill
-export class DialogStep extends AbstractPureComponent2<IDialogStepProps> {
+export class DialogStep extends AbstractPureComponent<DialogStepProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.DialogStep`;
 
     // this component is never rendered directly; see MultistepDialog#renderDialogStepPanel()
