@@ -33,7 +33,10 @@ export interface IEditableTextProps extends IIntentProps, IProps {
      *
      * This behavior can help in certain applications where, for example, a custom right-click
      * context menu is used to supply clipboard copy and paste functionality.
+  <<<<<<< excavator/policy-bot-oss-shadow
      *
+  =======
+  >>>>>>> release/3.17.x
      * @default false
      */
     alwaysRenderInput?: boolean;
@@ -156,10 +159,15 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         type: "text",
     };
 
+  <<<<<<< excavator/policy-bot-oss-shadow
     private inputElement: HTMLInputElement | HTMLTextAreaElement | null = null;
 
     private valueElement: HTMLSpanElement | null = null;
 
+  =======
+    private inputElement?: HTMLInputElement | HTMLTextAreaElement;
+    private valueElement: HTMLSpanElement;
+  >>>>>>> release/3.17.x
     private refHandlers = {
         content: (spanElement: HTMLSpanElement | null) => {
             this.valueElement = spanElement;
@@ -168,11 +176,14 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
             if (input != null) {
                 this.inputElement = input;
 
+  <<<<<<< excavator/policy-bot-oss-shadow
                 // temporary fix for #3882
                 if (!this.props.alwaysRenderInput) {
                     this.inputElement.focus();
                 }
 
+  =======
+  >>>>>>> release/3.17.x
                 if (this.state != null && this.state.isEditing) {
                     const supportsSelection = inputSupportsSelection(input);
                     if (supportsSelection) {
@@ -202,7 +213,11 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
 
     public render() {
         const { alwaysRenderInput, disabled, multiline } = this.props;
+  <<<<<<< excavator/policy-bot-oss-shadow
         const value = this.props.value ?? this.state.value;
+  =======
+        const value = this.props.value == null ? this.state.value : this.props.value;
+  >>>>>>> release/3.17.x
         const hasValue = value != null && value !== "";
 
         const classes = classNames(
@@ -234,7 +249,11 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         // If we are always rendering an input, then NEVER make the container div focusable.
         // Otherwise, make container div focusable when not editing, so it can still be tabbed
         // to focus (when the input is rendered, it is itself focusable so container div doesn't need to be)
+  <<<<<<< excavator/policy-bot-oss-shadow
         const tabIndex = alwaysRenderInput || this.state.isEditing || disabled ? undefined : 0;
+  =======
+        const tabIndex = alwaysRenderInput || this.state.isEditing || disabled ? null : 0;
+  >>>>>>> release/3.17.x
 
         // we need the contents to be rendered while editing so that we can measure their height
         // and size the container element responsively
@@ -243,7 +262,13 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         return (
             <div className={classes} onFocus={this.handleFocus} tabIndex={tabIndex}>
                 {alwaysRenderInput || this.state.isEditing ? this.renderInput(value) : undefined}
+  <<<<<<< excavator/policy-bot-oss-shadow
                 {shouldHideContents ? undefined : (
+  =======
+                {shouldHideContents ? (
+                    undefined
+                ) : (
+  >>>>>>> release/3.17.x
                     <span className={Classes.EDITABLE_TEXT_CONTENT} ref={this.refHandlers.content} style={contentStyle}>
                         {hasValue ? value : this.props.placeholder}
                     </span>
@@ -348,8 +373,13 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         }
     };
 
+  <<<<<<< excavator/policy-bot-oss-shadow
     private renderInput(value: string | undefined) {
         const { disabled, maxLength, multiline, type, placeholder } = this.props;
+  =======
+    private renderInput(value: string) {
+        const { maxLength, multiline, type, placeholder } = this.props;
+  >>>>>>> release/3.17.x
         const props: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> = {
             className: Classes.EDITABLE_TEXT_INPUT,
             disabled,
@@ -365,7 +395,11 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         if (inputHeight !== 0 && inputWidth !== 0) {
             props.style = {
                 height: inputHeight,
+  <<<<<<< excavator/policy-bot-oss-shadow
                 lineHeight: !multiline && inputHeight != null ? `${inputHeight}px` : undefined,
+  =======
+                lineHeight: !multiline && inputHeight != null ? `${inputHeight}px` : null,
+  >>>>>>> release/3.17.x
                 width: multiline ? "100%" : inputWidth,
             };
         }
