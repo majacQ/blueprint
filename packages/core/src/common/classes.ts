@@ -77,6 +77,10 @@ export const LIST = `${NS}-list`;
 export const LIST_UNSTYLED = `${NS}-list-unstyled`;
 export const RTL = `${NS}-rtl`;
 
+// layout utilities
+/** @see https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block */
+export const FIXED_POSITIONING_CONTAINING_BLOCK = `${NS}-fixed-positioning-containing-block`;
+
 // components
 export const ALERT = `${NS}-alert`;
 export const ALERT_BODY = `${ALERT}-body`;
@@ -115,6 +119,11 @@ export const DIALOG_CLOSE_BUTTON = `${DIALOG}-close-button`;
 export const DIALOG_FOOTER = `${DIALOG}-footer`;
 export const DIALOG_FOOTER_ACTIONS = `${DIALOG}-footer-actions`;
 export const DIALOG_HEADER = `${DIALOG}-header`;
+
+export const DIALOG_STEP = `${NS}-dialog-step`;
+export const DIALOG_STEP_CONTAINER = `${DIALOG_STEP}-container`;
+export const DIALOG_STEP_TITLE = `${DIALOG_STEP}-title`;
+export const DIALOG_STEP_ICON = `${DIALOG_STEP}-icon`;
 
 export const DIVIDER = `${NS}-divider`;
 
@@ -179,6 +188,12 @@ export const MENU_SUBMENU = `${NS}-submenu`;
 export const MENU_DIVIDER = `${MENU}-divider`;
 export const MENU_HEADER = `${MENU}-header`;
 
+export const MULTISTEP_DIALOG = `${NS}-multistep-dialog`;
+export const MULTISTEP_DIALOG_PANELS = `${MULTISTEP_DIALOG}-panels`;
+export const MULTISTEP_DIALOG_LEFT_PANEL = `${MULTISTEP_DIALOG}-left-panel`;
+export const MULTISTEP_DIALOG_RIGHT_PANEL = `${MULTISTEP_DIALOG}-right-panel`;
+export const MULTISTEP_DIALOG_FOOTER = `${MULTISTEP_DIALOG}-footer`;
+
 export const NAVBAR = `${NS}-navbar`;
 export const NAVBAR_GROUP = `${NAVBAR}-group`;
 export const NAVBAR_HEADING = `${NAVBAR}-heading`;
@@ -204,6 +219,11 @@ export const PANEL_STACK = `${NS}-panel-stack`;
 export const PANEL_STACK_HEADER = `${PANEL_STACK}-header`;
 export const PANEL_STACK_HEADER_BACK = `${PANEL_STACK}-header-back`;
 export const PANEL_STACK_VIEW = `${PANEL_STACK}-view`;
+
+export const PANEL_STACK2 = `${NS}-panel-stack2`;
+export const PANEL_STACK2_HEADER = `${PANEL_STACK}-header`;
+export const PANEL_STACK2_HEADER_BACK = `${PANEL_STACK}-header-back`;
+export const PANEL_STACK2_VIEW = `${PANEL_STACK}-view`;
 
 export const POPOVER = `${NS}-popover`;
 export const POPOVER_ARROW = `${POPOVER}-arrow`;
