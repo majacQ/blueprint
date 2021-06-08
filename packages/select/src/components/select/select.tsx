@@ -21,21 +21,23 @@ import {
     AbstractPureComponent2,
     Button,
     DISPLAYNAME_PREFIX,
-    getRef,
-    IInputGroupProps2,
+    InputGroupProps2,
     InputGroup,
     IPopoverProps,
     IRef,
-    IRefObject,
     Keys,
     Popover,
     Position,
     refHandler,
+    setRef,
 } from "@blueprintjs/core";
 
 import { Classes, IListItemsProps } from "../../common";
 import { IQueryListRendererProps, QueryList } from "../query-list/queryList";
 
+// eslint-disable-next-line deprecation/deprecation
+export type SelectProps<T> = ISelectProps<T>;
+/** @deprecated use SelectProps */
 export interface ISelectProps<T> extends IListItemsProps<T> {
     /**
      * Whether the dropdown list can be filtered.
@@ -59,7 +61,7 @@ export interface ISelectProps<T> extends IListItemsProps<T> {
      * `onQueryChange` instead of `inputProps.value` and `inputProps.onChange`
      * to control this input.
      */
-    inputProps?: IInputGroupProps2;
+    inputProps?: InputGroupProps2;
 
     /** Props to spread to `Popover`. Note that `content` cannot be changed. */
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -78,18 +80,18 @@ export interface ISelectState {
     isOpen: boolean;
 }
 
-export class Select<T> extends AbstractPureComponent2<ISelectProps<T>, ISelectState> {
+export class Select<T> extends AbstractPureComponent2<SelectProps<T>, ISelectState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Select`;
 
     public static ofType<U>() {
-        return Select as new (props: ISelectProps<U>) => Select<U>;
+        return Select as new (props: SelectProps<U>) => Select<U>;
     }
 
     public state: ISelectState = { isOpen: false };
 
     private TypedQueryList = QueryList.ofType<T>();
 
-    public inputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public inputElement: HTMLInputElement | null = null;
 
     private queryList: QueryList<T> | null = null;
 
@@ -113,7 +115,13 @@ export class Select<T> extends AbstractPureComponent2<ISelectProps<T>, ISelectSt
         );
     }
 
-    public componentDidUpdate(_prevProps: ISelectProps<T>, prevState: ISelectState) {
+    public componentDidUpdate(prevProps: SelectProps<T>, prevState: ISelectState) {
+        if (prevProps.inputProps?.inputRef !== this.props.inputProps?.inputRef) {
+            setRef(prevProps.inputProps?.inputRef, null);
+            this.handleInputRef = refHandler(this, "inputElement", this.props.inputProps?.inputRef);
+            setRef(this.props.inputProps?.inputRef, this.inputElement);
+        }
+
         if (this.state.isOpen && !prevState.isOpen && this.queryList != null) {
             this.queryList.scrollActiveItemIntoView();
         }
@@ -212,7 +220,7 @@ export class Select<T> extends AbstractPureComponent2<ISelectProps<T>, ISelectSt
             const { inputProps = {} } = this.props;
             // autofocus is enabled by default
             if (inputProps.autoFocus !== false) {
-                getRef(this.inputElement)?.focus();
+                this.inputElement?.focus();
             }
         });
 

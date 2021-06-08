@@ -20,22 +20,24 @@ import * as React from "react";
 import {
     AbstractPureComponent2,
     DISPLAYNAME_PREFIX,
-    getRef,
-    IInputGroupProps2,
+    InputGroupProps2,
     InputGroup,
     IPopoverProps,
     IRef,
-    IRefObject,
     Keys,
     Popover,
     PopoverInteractionKind,
     Position,
     refHandler,
+    setRef,
 } from "@blueprintjs/core";
 
 import { Classes, IListItemsProps } from "../../common";
 import { IQueryListRendererProps, QueryList } from "../query-list/queryList";
 
+// eslint-disable-next-line deprecation/deprecation
+export type SuggestProps<T> = ISuggestProps<T>;
+/** @deprecated use SuggestProps */
 export interface ISuggestProps<T> extends IListItemsProps<T> {
     /**
      * Whether the popover should close after selecting an item.
@@ -58,7 +60,7 @@ export interface ISuggestProps<T> extends IListItemsProps<T> {
      * `query` and `onQueryChange` instead of `inputProps.value` and
      * `inputProps.onChange`.
      */
-    inputProps?: IInputGroupProps2;
+    inputProps?: InputGroupProps2;
 
     /** Custom renderer to transform an item into a string for the input value. */
     inputValueRenderer: (item: T) => string;
@@ -105,10 +107,10 @@ export interface ISuggestState<T> {
     selectedItem: T | null;
 }
 
-export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISuggestState<T>> {
+export class Suggest<T> extends AbstractPureComponent2<SuggestProps<T>, ISuggestState<T>> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Suggest`;
 
-    public static defaultProps: Partial<ISuggestProps<any>> = {
+    public static defaultProps: Partial<SuggestProps<any>> = {
         closeOnSelect: true,
         fill: false,
         openOnKeyDown: false,
@@ -116,7 +118,7 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
     };
 
     public static ofType<U>() {
-        return Suggest as new (props: ISuggestProps<U>) => Suggest<U>;
+        return Suggest as new (props: SuggestProps<U>) => Suggest<U>;
     }
 
     public state: ISuggestState<T> = {
@@ -126,7 +128,7 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
 
     private TypedQueryList = QueryList.ofType<T>();
 
-    public inputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public inputElement: HTMLInputElement | null = null;
 
     private queryList: QueryList<T> | null = null;
 
@@ -148,7 +150,13 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
         );
     }
 
-    public componentDidUpdate(_prevProps: ISuggestProps<T>, prevState: ISuggestState<T>) {
+    public componentDidUpdate(prevProps: SuggestProps<T>, prevState: ISuggestState<T>) {
+        if (prevProps.inputProps?.inputRef !== this.props.inputProps?.inputRef) {
+            setRef(prevProps.inputProps?.inputRef, null);
+            this.handleInputRef = refHandler(this, "inputElement", this.props.inputProps?.inputRef);
+            setRef(this.props.inputProps?.inputRef, this.inputElement);
+        }
+
         // If the selected item prop changes, update the underlying state.
         if (this.props.selectedItem !== undefined && this.props.selectedItem !== this.state.selectedItem) {
             this.setState({ selectedItem: this.props.selectedItem });
@@ -225,8 +233,7 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
     private selectText = () => {
         // wait until the input is properly focused to select the text inside of it
         this.requestAnimationFrame(() => {
-            const input = getRef(this.inputElement);
-            input?.setSelectionRange(0, input.value.length);
+            this.inputElement?.setSelectionRange(0, this.inputElement.value.length);
         });
     };
 
@@ -245,11 +252,11 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
         let nextOpenState: boolean;
 
         if (!this.props.closeOnSelect) {
-            getRef(this.inputElement)?.focus();
+            this.inputElement?.focus();
             this.selectText();
             nextOpenState = true;
         } else {
-            getRef(this.inputElement)?.blur();
+            this.inputElement?.blur();
             nextOpenState = false;
         }
 
@@ -282,7 +289,7 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
     // Note that we defer to the next animation frame in order to get the latest document.activeElement
     private handlePopoverInteraction = (nextOpenState: boolean) =>
         this.requestAnimationFrame(() => {
-            const isInputFocused = getRef(this.inputElement) === document.activeElement;
+            const isInputFocused = this.inputElement === document.activeElement;
 
             if (this.inputElement != null && !isInputFocused) {
                 // the input is no longer focused, we should close the popover
@@ -317,7 +324,7 @@ export class Suggest<T> extends AbstractPureComponent2<ISuggestProps<T>, ISugges
             const { which } = evt;
 
             if (which === Keys.ESCAPE || which === Keys.TAB) {
-                getRef(this.inputElement)?.blur();
+                this.inputElement?.blur();
                 this.setState({ isOpen: false });
             } else if (
                 this.props.openOnKeyDown &&

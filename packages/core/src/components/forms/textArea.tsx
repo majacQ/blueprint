@@ -18,19 +18,13 @@ import classNames from "classnames";
 import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
 
-import {
-    AbstractPureComponent2,
-    Classes,
-    getRef,
-    IRef,
-    IRefObject,
-    isRefCallback,
-    isRefObject,
-    refHandler,
-} from "../../common";
-import { DISPLAYNAME_PREFIX, IIntentProps, IProps } from "../../common/props";
+import { AbstractPureComponent2, Classes, IRef, IRefCallback, refHandler, setRef } from "../../common";
+import { DISPLAYNAME_PREFIX, IntentProps, Props } from "../../common/props";
 
-export interface ITextAreaProps extends IIntentProps, IProps, React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+// eslint-disable-next-line deprecation/deprecation
+export type TextAreaProps = ITextAreaProps;
+/** @deprecated use TextAreaProps */
+export interface ITextAreaProps extends IntentProps, Props, React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     /**
      * Whether the text area should take up the full width of its container.
      */
@@ -64,35 +58,31 @@ export interface ITextAreaState {
 // this component is simple enough that tests would be purely tautological.
 /* istanbul ignore next */
 @polyfill
-export class TextArea extends AbstractPureComponent2<ITextAreaProps, ITextAreaState> {
+export class TextArea extends AbstractPureComponent2<TextAreaProps, ITextAreaState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.TextArea`;
 
     public state: ITextAreaState = {};
 
     // used to measure and set the height of the component on first mount
-    public textareaElement: HTMLTextAreaElement | IRefObject<HTMLTextAreaElement> | null = null;
+    public textareaElement: HTMLTextAreaElement | null = null;
 
-    private handleRef: IRef<HTMLTextAreaElement> = refHandler(this, "textareaElement", this.props.inputRef);
+    private handleRef: IRefCallback<HTMLTextAreaElement> = refHandler(this, "textareaElement", this.props.inputRef);
 
     public componentDidMount() {
         if (this.props.growVertically && this.textareaElement !== null) {
             // HACKHACK: this should probably be done in getSnapshotBeforeUpdate
             /* eslint-disable-next-line react/no-did-mount-set-state */
             this.setState({
-                height: getRef(this.textareaElement)!.scrollHeight,
+                height: this.textareaElement?.scrollHeight,
             });
         }
     }
 
-    public componentDidUpdate(prevProps: ITextAreaProps) {
-        const { inputRef } = this.props;
-        if (prevProps.inputRef !== inputRef) {
-            if (isRefObject<HTMLTextAreaElement>(inputRef)) {
-                inputRef.current = (this.textareaElement as IRefObject<HTMLTextAreaElement>).current;
-                this.textareaElement = inputRef;
-            } else if (isRefCallback<HTMLTextAreaElement>(inputRef)) {
-                inputRef(this.textareaElement as HTMLTextAreaElement | null);
-            }
+    public componentDidUpdate(prevProps: TextAreaProps) {
+        if (prevProps.inputRef !== this.props.inputRef) {
+            setRef(prevProps.inputRef, null);
+            this.handleRef = refHandler(this, "textareaElement", this.props.inputRef);
+            setRef(this.props.inputRef, this.textareaElement);
         }
     }
 

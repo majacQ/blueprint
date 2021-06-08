@@ -24,26 +24,25 @@ import {
     Boundary,
     Classes,
     DISPLAYNAME_PREFIX,
-    getRef,
-    IInputGroupProps2,
+    InputGroupProps2,
     InputGroup,
     Intent,
     IPopoverProps,
-    IProps,
-    IRefObject,
+    Props,
     Keys,
     Popover,
     Position,
     refHandler,
+    setRef,
 } from "@blueprintjs/core";
 
 import { DateRange } from "./common/dateRange";
 import { areSameTime, isDateValid, isDayInRange } from "./common/dateUtils";
 import * as Errors from "./common/errors";
-import { getFormattedDateString, IDateFormatProps } from "./dateFormat";
+import { getFormattedDateString, DateFormatProps } from "./dateFormat";
 import { getDefaultMaxDate, getDefaultMinDate, IDatePickerBaseProps } from "./datePickerCore";
 import { DateRangePicker } from "./dateRangePicker";
-import { IDateRangeShortcut } from "./shortcuts";
+import { DateRangeShortcut } from "./shortcuts";
 
 // we handle events in a kind of generic way in this component, so here we enumerate all the different kinds of events which we have handlers for
 type InputEvent =
@@ -52,7 +51,10 @@ type InputEvent =
     | React.FocusEvent<HTMLInputElement>
     | React.ChangeEvent<HTMLInputElement>;
 
-export interface IDateRangeInputProps extends IDatePickerBaseProps, IDateFormatProps, IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type DateRangeInputProps = IDateRangeInputProps;
+/** @deprecated use DateRangeInputProps */
+export interface IDateRangeInputProps extends IDatePickerBaseProps, DateFormatProps, Props {
     /**
      * Whether the start and end dates of the range can be the same day.
      * If `true`, clicking a selected date will create a one-day range.
@@ -95,7 +97,7 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IDateFormatP
      * `disabled` and `value` will be ignored in favor of the top-level props on this component.
      * `ref` is not supported; use `inputRef` instead.
      */
-    endInputProps?: IInputGroupProps2;
+    endInputProps?: InputGroupProps2;
 
     /**
      * Called when the user selects a day.
@@ -143,7 +145,7 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IDateFormatP
      *
      * @default true
      */
-    shortcuts?: boolean | IDateRangeShortcut[];
+    shortcuts?: boolean | DateRangeShortcut[];
 
     /**
      * Whether to show only a single month calendar.
@@ -157,7 +159,7 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IDateFormatP
      * `disabled` and `value` will be ignored in favor of the top-level props on this component.
      * `ref` is not supported; use `inputRef` instead.
      */
-    startInputProps?: IInputGroupProps2;
+    startInputProps?: InputGroupProps2;
 
     /**
      * The currently selected date range.
@@ -213,8 +215,8 @@ interface IStateKeysAndValuesObject {
 }
 
 @polyfill
-export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps, IDateRangeInputState> {
-    public static defaultProps: Partial<IDateRangeInputProps> = {
+export class DateRangeInput extends AbstractPureComponent2<DateRangeInputProps, IDateRangeInputState> {
+    public static defaultProps: Partial<DateRangeInputProps> = {
         allowSingleDayRange: false,
         closeOnSelection: true,
         contiguousCalendarMonths: true,
@@ -235,23 +237,23 @@ export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps,
 
     public static displayName = `${DISPLAYNAME_PREFIX}.DateRangeInput`;
 
-    public startInputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public startInputElement: HTMLInputElement | null = null;
 
-    public endInputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public endInputElement: HTMLInputElement | null = null;
 
     private handleStartInputRef = refHandler<HTMLInputElement, "startInputElement">(
         this,
         "startInputElement",
-        this.props.startInputProps.inputRef,
+        this.props.startInputProps?.inputRef,
     );
 
     private handleEndInputRef = refHandler<HTMLInputElement, "endInputElement">(
         this,
         "endInputElement",
-        this.props.endInputProps.inputRef,
+        this.props.endInputProps?.inputRef,
     );
 
-    public constructor(props: IDateRangeInputProps, context?: any) {
+    public constructor(props: DateRangeInputProps, context?: any) {
         super(props, context);
         this.reset(props);
     }
@@ -259,7 +261,7 @@ export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps,
     /**
      * Public method intended for unit testing only. Do not use in feature work!
      */
-    public reset(props: IDateRangeInputProps = this.props) {
+    public reset(props: DateRangeInputProps = this.props) {
         const [selectedStart, selectedEnd] = this.getInitialRange();
         this.state = {
             formattedMaxDateString: this.getFormattedMinMaxDateString(props, "maxDate"),
@@ -271,26 +273,34 @@ export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps,
         };
     }
 
-    public componentDidUpdate(prevProps: IDateRangeInputProps, prevState: IDateRangeInputState) {
+    public componentDidUpdate(prevProps: DateRangeInputProps, prevState: IDateRangeInputState) {
         super.componentDidUpdate(prevProps, prevState);
         const { isStartInputFocused, isEndInputFocused, shouldSelectAfterUpdate } = this.state;
 
-        const startInputRef = getRef(this.startInputElement);
-        const endInputRef = getRef(this.endInputElement);
+        if (prevProps.startInputProps?.inputRef !== this.props.startInputProps?.inputRef) {
+            setRef(prevProps.startInputProps?.inputRef, null);
+            this.handleStartInputRef = refHandler(this, "startInputElement", this.props.startInputProps?.inputRef);
+            setRef(this.props.startInputProps?.inputRef, this.startInputElement);
+        }
+        if (prevProps.endInputProps?.inputRef !== this.props.endInputProps?.inputRef) {
+            setRef(prevProps.endInputProps?.inputRef, null);
+            this.handleEndInputRef = refHandler(this, "endInputElement", this.props.endInputProps?.inputRef);
+            setRef(this.props.endInputProps?.inputRef, this.endInputElement);
+        }
 
-        const shouldFocusStartInput = this.shouldFocusInputRef(isStartInputFocused, startInputRef);
-        const shouldFocusEndInput = this.shouldFocusInputRef(isEndInputFocused, endInputRef);
+        const shouldFocusStartInput = this.shouldFocusInputRef(isStartInputFocused, this.startInputElement);
+        const shouldFocusEndInput = this.shouldFocusInputRef(isEndInputFocused, this.endInputElement);
 
         if (shouldFocusStartInput) {
-            startInputRef.focus();
+            this.startInputElement?.focus();
         } else if (shouldFocusEndInput) {
-            endInputRef.focus();
+            this.endInputElement?.focus();
         }
 
         if (isStartInputFocused && shouldSelectAfterUpdate) {
-            startInputRef.select();
+            this.startInputElement?.select();
         } else if (isEndInputFocused && shouldSelectAfterUpdate) {
-            endInputRef.select();
+            this.endInputElement?.select();
         }
 
         let nextState: IDateRangeInputState = {};
@@ -354,7 +364,7 @@ export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps,
         );
     }
 
-    protected validateProps(props: IDateRangeInputProps) {
+    protected validateProps(props: DateRangeInputProps) {
         if (props.value === null) {
             throw new Error(Errors.DATERANGEINPUT_NULL_VALUE);
         }
@@ -483,7 +493,7 @@ export class DateRangeInput extends AbstractPureComponent2<IDateRangeInputProps,
         this.props.onChange?.(selectedRange);
     };
 
-    private handleShortcutChange = (_: IDateRangeShortcut, selectedShortcutIndex: number) => {
+    private handleShortcutChange = (_: DateRangeShortcut, selectedShortcutIndex: number) => {
         this.setState({ selectedShortcutIndex });
     };
 

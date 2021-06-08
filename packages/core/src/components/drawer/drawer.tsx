@@ -21,13 +21,22 @@ import { polyfill } from "react-lifecycles-compat";
 import { AbstractPureComponent2, Classes } from "../../common";
 import * as Errors from "../../common/errors";
 import { getPositionIgnoreAngles, isPositionHorizontal, Position } from "../../common/position";
-import { DISPLAYNAME_PREFIX, IProps, MaybeElement } from "../../common/props";
+import { DISPLAYNAME_PREFIX, Props, MaybeElement } from "../../common/props";
 import { Button } from "../button/buttons";
 import { H4 } from "../html/html";
-import { Icon, IconName } from "../icon/icon";
-import { IBackdropProps, IOverlayableProps, Overlay } from "../overlay/overlay";
+import { Icon, IconName, IconSize } from "../icon/icon";
+import { IBackdropProps, OverlayableProps, Overlay } from "../overlay/overlay";
 
-export interface IDrawerProps extends IOverlayableProps, IBackdropProps, IProps {
+export enum DrawerSize {
+    SMALL = "360px",
+    STANDARD = "50%",
+    LARGE = "90%",
+}
+
+// eslint-disable-next-line deprecation/deprecation
+export type DrawerProps = IDrawerProps;
+/** @deprecated use DrawerProps */
+export interface IDrawerProps extends OverlayableProps, IBackdropProps, Props {
     /**
      * Name of a Blueprint UI icon (or an icon element) to render in the
      * drawer's header. Note that the header will only be rendered if `title` is
@@ -58,15 +67,23 @@ export interface IDrawerProps extends IOverlayableProps, IBackdropProps, IProps 
     position?: Position;
 
     /**
+     * Whether the application should return focus to the last active element in the
+     * document after this drawer closes.
+     *
+     * @default true
+     */
+    shouldReturnFocusOnClose?: boolean;
+
+    /**
      * CSS size of the drawer. This sets `width` if `vertical={false}` (default)
      * and `height` otherwise.
      *
      * Constants are available for common sizes:
-     * - `Drawer.SIZE_SMALL = 360px`
-     * - `Drawer.SIZE_STANDARD = 50%`
-     * - `Drawer.SIZE_LARGE = 90%`
+     * - `DrawerSize.SMALL = 360px`
+     * - `DrawerSize.STANDARD = 50%`
+     * - `DrawerSize.LARGE = 90%`
      *
-     * @default Drawer.SIZE_STANDARD = "50%"
+     * @default DrawerSize.STANDARD = "50%"
      */
     size?: number | string;
 
@@ -100,21 +117,25 @@ export interface IDrawerProps extends IOverlayableProps, IBackdropProps, IProps 
 }
 
 @polyfill
-export class Drawer extends AbstractPureComponent2<IDrawerProps> {
+export class Drawer extends AbstractPureComponent2<DrawerProps> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Drawer`;
 
-    public static defaultProps: IDrawerProps = {
+    public static defaultProps: DrawerProps = {
         canOutsideClickClose: true,
         isOpen: false,
+        shouldReturnFocusOnClose: true,
         style: {},
         vertical: false,
     };
 
-    public static readonly SIZE_SMALL = "360px";
+    /** @deprecated use DrawerSize.SMALL */
+    public static readonly SIZE_SMALL = DrawerSize.SMALL;
 
-    public static readonly SIZE_STANDARD = "50%";
+    /** @deprecated use DrawerSize.STANDARD */
+    public static readonly SIZE_STANDARD = DrawerSize.STANDARD;
 
-    public static readonly SIZE_LARGE = "90%";
+    /** @deprecated use DrawerSize.LARGE */
+    public static readonly SIZE_LARGE = DrawerSize.LARGE;
 
     private lastActiveElementBeforeOpened: Element | null | undefined;
 
@@ -154,7 +175,7 @@ export class Drawer extends AbstractPureComponent2<IDrawerProps> {
         );
     }
 
-    protected validateProps(props: IDrawerProps) {
+    protected validateProps(props: DrawerProps) {
         if (props.title == null) {
             if (props.icon != null) {
                 console.warn(Errors.DIALOG_WARN_NO_HEADER_ICON);
@@ -182,7 +203,7 @@ export class Drawer extends AbstractPureComponent2<IDrawerProps> {
                 <Button
                     aria-label="Close"
                     className={Classes.DIALOG_CLOSE_BUTTON}
-                    icon={<Icon icon="small-cross" iconSize={Icon.SIZE_LARGE} />}
+                    icon={<Icon icon="small-cross" iconSize={IconSize.LARGE} />}
                     minimal={true}
                     onClick={this.props.onClose}
                 />
@@ -199,7 +220,7 @@ export class Drawer extends AbstractPureComponent2<IDrawerProps> {
         }
         return (
             <div className={Classes.DRAWER_HEADER}>
-                <Icon icon={icon} iconSize={Icon.SIZE_LARGE} />
+                <Icon icon={icon} iconSize={IconSize.LARGE} />
                 <H4>{title}</H4>
                 {this.maybeRenderCloseButton()}
             </div>
@@ -212,7 +233,7 @@ export class Drawer extends AbstractPureComponent2<IDrawerProps> {
     };
 
     private handleClosed = (node: HTMLElement) => {
-        if (this.lastActiveElementBeforeOpened instanceof HTMLElement) {
+        if (this.props.shouldReturnFocusOnClose && this.lastActiveElementBeforeOpened instanceof HTMLElement) {
             this.lastActiveElementBeforeOpened.focus();
         }
         this.props.onClosed?.(node);

@@ -22,27 +22,29 @@ import { polyfill } from "react-lifecycles-compat";
 import {
     AbstractPureComponent2,
     DISPLAYNAME_PREFIX,
-    getRef,
-    IInputGroupProps2,
+    InputGroupProps2,
     InputGroup,
     Intent,
     IPopoverProps,
-    IProps,
-    IRefCallback,
-    IRefObject,
+    Props,
+    IRef,
     Keys,
     Popover,
     refHandler,
+    setRef,
 } from "@blueprintjs/core";
 
 import * as Classes from "./common/classes";
 import { isDateValid, isDayInRange } from "./common/dateUtils";
-import { getFormattedDateString, IDateFormatProps } from "./dateFormat";
+import { getFormattedDateString, DateFormatProps } from "./dateFormat";
 import { DatePicker } from "./datePicker";
 import { getDefaultMaxDate, getDefaultMinDate, IDatePickerBaseProps } from "./datePickerCore";
-import { IDatePickerShortcut } from "./shortcuts";
+import { DatePickerShortcut } from "./shortcuts";
 
-export interface IDateInputProps extends IDatePickerBaseProps, IDateFormatProps, IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type DateInputProps = IDateInputProps;
+/** @deprecated use DateInputProps */
+export interface IDateInputProps extends IDatePickerBaseProps, DateFormatProps, Props {
     /**
      * Allows the user to clear the selection by clicking the currently selected day.
      * Passed to `DatePicker` component.
@@ -86,9 +88,9 @@ export interface IDateInputProps extends IDatePickerBaseProps, IDateFormatProps,
     /**
      * Props to pass to the [input group](#core/components/text-inputs.input-group).
      * `disabled` and `value` will be ignored in favor of the top-level props on this component.
-     * `type` is fixed to "text" and `ref` is not supported; use `inputRef` instead.
+     * `type` is fixed to "text".
      */
-    inputProps?: IInputGroupProps2;
+    inputProps?: InputGroupProps2;
 
     /**
      * Called when the user selects a new valid date through the `DatePicker` or by typing
@@ -132,7 +134,7 @@ export interface IDateInputProps extends IDatePickerBaseProps, IDateFormatProps,
      *
      * @default false
      */
-    shortcuts?: boolean | IDatePickerShortcut[];
+    shortcuts?: boolean | DatePickerShortcut[];
 
     /**
      * The currently selected day. If this prop is provided, the component acts in a controlled manner.
@@ -159,10 +161,10 @@ export interface IDateInputState {
 }
 
 @polyfill
-export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInputState> {
+export class DateInput extends AbstractPureComponent2<DateInputProps, IDateInputState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.DateInput`;
 
-    public static defaultProps: Partial<IDateInputProps> = {
+    public static defaultProps: Partial<DateInputProps> = {
         closeOnSelection: true,
         dayPickerProps: {},
         disabled: false,
@@ -180,7 +182,7 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
         valueString: null,
     };
 
-    public inputElement: HTMLInputElement | IRefObject<HTMLInputElement> | null = null;
+    public inputElement: HTMLInputElement | null = null;
 
     public popoverContentElement: HTMLDivElement | null = null;
 
@@ -194,7 +196,7 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
         this.props.inputProps?.inputRef,
     );
 
-    private handlePopoverContentRef: IRefCallback<HTMLDivElement> = refHandler(this, "popoverContentElement");
+    private handlePopoverContentRef: IRef<HTMLDivElement> = refHandler(this, "popoverContentElement");
 
     public componentWillUnmount() {
         this.unregisterPopoverBlurHandler();
@@ -212,7 +214,7 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
                 if (
                     e.key === "Tab" &&
                     !e.shiftKey &&
-                    this.lastTabbableElement.classList.contains(Classes.DATEPICKER_DAY)
+                    this.lastTabbableElement?.classList.contains(Classes.DATEPICKER_DAY)
                 ) {
                     this.setState({ isOpen: false });
                 }
@@ -277,8 +279,15 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
         );
     }
 
-    public componentDidUpdate(prevProps: IDateInputProps, prevState: IDateInputState) {
+    public componentDidUpdate(prevProps: DateInputProps, prevState: IDateInputState) {
         super.componentDidUpdate(prevProps, prevState);
+
+        if (prevProps.inputProps?.inputRef !== this.props.inputProps?.inputRef) {
+            setRef(prevProps.inputProps?.inputRef, null);
+            this.handleInputRef = refHandler(this, "inputElement", this.props.inputProps?.inputRef);
+            setRef(this.props.inputProps?.inputRef, this.inputElement);
+        }
+
         if (prevProps.value !== this.props.value) {
             this.setState({ value: this.props.value });
         }
@@ -414,7 +423,7 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
             this.setState({ isOpen: false });
         } else if (e.which === Keys.ESCAPE) {
             this.setState({ isOpen: false });
-            getRef(this.inputElement).blur();
+            this.inputElement?.blur();
         }
         this.safeInvokeInputProp("onKeyDown", e);
     };
@@ -475,12 +484,12 @@ export class DateInput extends AbstractPureComponent2<IDateInputProps, IDateInpu
         this.lastTabbableElement?.removeEventListener("blur", this.handlePopoverBlur);
     };
 
-    private handleShortcutChange = (_: IDatePickerShortcut, selectedShortcutIndex: number) => {
+    private handleShortcutChange = (_: DatePickerShortcut, selectedShortcutIndex: number) => {
         this.setState({ selectedShortcutIndex });
     };
 
     /** safe wrapper around invoking input props event handler (prop defaults to undefined) */
-    private safeInvokeInputProp(name: keyof IInputGroupProps2, e: React.SyntheticEvent<HTMLElement>) {
+    private safeInvokeInputProp(name: keyof InputGroupProps2, e: React.SyntheticEvent<HTMLElement>) {
         const { inputProps = {} } = this.props;
         inputProps[name]?.(e);
     }

@@ -19,9 +19,12 @@ import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
 
 import { AbstractPureComponent2, Classes } from "../../common";
-import { DISPLAYNAME_PREFIX, IProps } from "../../common/props";
+import { DISPLAYNAME_PREFIX, Props } from "../../common/props";
 
-export interface ICollapseProps extends IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type CollapseProps = ICollapseProps;
+/** @deprecated use CollapseProps */
+export interface ICollapseProps extends Props {
     /**
      * Component to render as the root element.
      * Useful when rendering a `Collapse` inside a `<table>`, for instance.
@@ -115,17 +118,17 @@ export enum AnimationStates {
 }
 
 @polyfill
-export class Collapse extends AbstractPureComponent2<ICollapseProps, ICollapseState> {
+export class Collapse extends AbstractPureComponent2<CollapseProps, ICollapseState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Collapse`;
 
-    public static defaultProps: ICollapseProps = {
+    public static defaultProps: CollapseProps = {
         component: "div",
         isOpen: false,
         keepChildrenMounted: false,
         transitionDuration: 200,
     };
 
-    public static getDerivedStateFromProps(props: ICollapseProps, state: ICollapseState) {
+    public static getDerivedStateFromProps(props: CollapseProps, state: ICollapseState) {
         const { isOpen } = props;
         const { animationState } = state;
 
@@ -182,6 +185,9 @@ export class Collapse extends AbstractPureComponent2<ICollapseProps, ICollapseSt
             transition: isAutoHeight ? "none" : undefined,
         };
 
+        // in order to give hints to child elements which rely on CSS fixed positioning, we need to apply a class
+        // to the element which creates a new containing block with a non-empty `transform` property
+        // see https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
         const contentsStyle = {
             // only use heightWhenOpen while closing
             transform: displayWithTransform ? "translateY(0)" : `translateY(-${this.state.heightWhenOpen}px)`,
@@ -196,7 +202,7 @@ export class Collapse extends AbstractPureComponent2<ICollapseProps, ICollapseSt
                 style: containerStyle,
             },
             <div
-                className={Classes.COLLAPSE_BODY}
+                className={classNames(Classes.COLLAPSE_BODY, Classes.FIXED_POSITIONING_CONTAINING_BLOCK)}
                 ref={this.contentsRefHandler}
                 style={contentsStyle}
                 aria-hidden={!isContentVisible && this.props.keepChildrenMounted}

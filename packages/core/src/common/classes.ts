@@ -77,6 +77,10 @@ export const LIST = `${NS}-list`;
 export const LIST_UNSTYLED = `${NS}-list-unstyled`;
 export const RTL = `${NS}-rtl`;
 
+// layout utilities
+/** @see https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block */
+export const FIXED_POSITIONING_CONTAINING_BLOCK = `${NS}-fixed-positioning-containing-block`;
+
 // components
 export const ALERT = `${NS}-alert`;
 export const ALERT_BODY = `${ALERT}-body`;
@@ -120,6 +124,7 @@ export const DIALOG_STEP = `${NS}-dialog-step`;
 export const DIALOG_STEP_CONTAINER = `${DIALOG_STEP}-container`;
 export const DIALOG_STEP_TITLE = `${DIALOG_STEP}-title`;
 export const DIALOG_STEP_ICON = `${DIALOG_STEP}-icon`;
+export const DIALOG_STEP_VIEWED = `${DIALOG_STEP}-viewed`;
 
 export const DIVIDER = `${NS}-divider`;
 

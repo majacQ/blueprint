@@ -17,8 +17,8 @@
 import { Boundary as PopperBoundary, Modifiers as PopperModifiers, Placement } from "popper.js";
 
 import { Position } from "../../common/position";
-import { IProps } from "../../common/props";
-import { IOverlayableProps } from "../overlay/overlay";
+import { Props } from "../../common/props";
+import { OverlayableProps } from "../overlay/overlay";
 
 // re-export symbols for library consumers
 export { PopperBoundary, PopperModifiers };
@@ -34,7 +34,7 @@ export const PopoverPosition = {
 export type PopoverPosition = typeof PopoverPosition[keyof typeof PopoverPosition];
 
 /** Props shared between `Popover` and `Tooltip`. */
-export interface IPopoverSharedProps extends IOverlayableProps, IProps {
+export interface IPopoverSharedProps extends OverlayableProps, Props {
     /**
      * Determines the boundary element used by Popper for its `flip` and
      * `preventOverflow` modifiers. Three shorthand keywords are supported;
@@ -136,6 +136,7 @@ export interface IPopoverSharedProps extends IOverlayableProps, IProps {
 
     /**
      * The placement (relative to the target) at which the popover should appear.
+     * Mutually exclusive with `position` prop.
      *
      * The default value of `"auto"` will choose the best placement when opened
      * and will allow the popover to reposition itself to remain onscreen as the
@@ -153,13 +154,13 @@ export interface IPopoverSharedProps extends IOverlayableProps, IProps {
 
     /**
      * The position (relative to the target) at which the popover should appear.
+     * Mutually exclusive with `placement` prop.
      *
      * The default value of `"auto"` will choose the best position when opened
      * and will allow the popover to reposition itself to remain onscreen as the
      * user scrolls around.
      *
      * @default "auto"
-     * @deprecated use placement instead
      */
     position?: PopoverPosition;
 
