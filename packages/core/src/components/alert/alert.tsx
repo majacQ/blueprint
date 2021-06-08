@@ -18,7 +18,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, DISPLAYNAME_PREFIX, Intent, IProps, MaybeElement } from "../../common";
+import { AbstractPureComponent2, Classes, DISPLAYNAME_PREFIX, Intent, Props, MaybeElement } from "../../common";
 import {
     ALERT_WARN_CANCEL_ESCAPE_KEY,
     ALERT_WARN_CANCEL_OUTSIDE_CLICK,
@@ -29,10 +29,14 @@ import { Dialog } from "../dialog/dialog";
 import { Icon, IconName } from "../icon/icon";
 import { IOverlayLifecycleProps } from "../overlay/overlay";
 
-export interface IAlertProps extends IOverlayLifecycleProps, IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type AlertProps = IAlertProps;
+/** @deprecated use AlertProps */
+export interface IAlertProps extends IOverlayLifecycleProps, Props {
     /**
      * Whether pressing <kbd>escape</kbd> when focused on the Alert should cancel the alert.
      * If this prop is enabled, then either `onCancel` or `onClose` must also be defined.
+     *
      * @default false
      */
     canEscapeKeyCancel?: boolean;
@@ -40,6 +44,7 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
     /**
      * Whether clicking outside the Alert should cancel the alert.
      * If this prop is enabled, then either `onCancel` or `onClose` must also be defined.
+     *
      * @default false
      */
     canOutsideClickCancel?: boolean;
@@ -53,6 +58,7 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
     /**
      * The text for the confirm (right-most) button.
      * This button will always appear, and uses the value of the `intent` prop below.
+     *
      * @default "OK"
      */
     confirmButtonText?: string;
@@ -72,6 +78,14 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
     isOpen: boolean;
 
     /**
+     * If set to `true`, the confirm button will be set to its loading state. The cancel button, if
+     * visible, will be disabled.
+     *
+     * @default false
+     */
+    loading?: boolean;
+
+    /**
      * CSS styles to apply to the alert.
      */
     style?: React.CSSProperties;
@@ -81,6 +95,7 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
      * This is used by React `CSSTransition` to know when a transition completes and must match
      * the duration of the animation in CSS. Only set this prop if you override Blueprint's default
      * transitions with new transitions of a different length.
+     *
      * @default 300
      */
     transitionDuration?: number;
@@ -88,6 +103,7 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
     /**
      * The container element into which the overlay renders its contents, when `usePortal` is `true`.
      * This prop is ignored if `usePortal` is `false`.
+     *
      * @default document.body
      */
     portalContainer?: HTMLElement;
@@ -118,12 +134,13 @@ export interface IAlertProps extends IOverlayLifecycleProps, IProps {
 }
 
 @polyfill
-export class Alert extends AbstractPureComponent2<IAlertProps> {
-    public static defaultProps: IAlertProps = {
+export class Alert extends AbstractPureComponent2<AlertProps> {
+    public static defaultProps: AlertProps = {
         canEscapeKeyCancel: false,
         canOutsideClickCancel: false,
         confirmButtonText: "OK",
         isOpen: false,
+        loading: false,
     };
 
     public static displayName = `${DISPLAYNAME_PREFIX}.Alert`;
@@ -136,6 +153,7 @@ export class Alert extends AbstractPureComponent2<IAlertProps> {
             className,
             icon,
             intent,
+            loading,
             cancelButtonText,
             confirmButtonText,
             onClose,
@@ -155,14 +173,16 @@ export class Alert extends AbstractPureComponent2<IAlertProps> {
                     <div className={Classes.ALERT_CONTENTS}>{children}</div>
                 </div>
                 <div className={Classes.ALERT_FOOTER}>
-                    <Button intent={intent} text={confirmButtonText} onClick={this.handleConfirm} />
-                    {cancelButtonText && <Button text={cancelButtonText} onClick={this.handleCancel} />}
+                    <Button loading={loading} intent={intent} text={confirmButtonText} onClick={this.handleConfirm} />
+                    {cancelButtonText && (
+                        <Button text={cancelButtonText} disabled={loading} onClick={this.handleCancel} />
+                    )}
                 </div>
             </Dialog>
         );
     }
 
-    protected validateProps(props: IAlertProps) {
+    protected validateProps(props: AlertProps) {
         if (props.onClose == null && (props.cancelButtonText == null) !== (props.onCancel == null)) {
             console.warn(ALERT_WARN_CANCEL_PROPS);
         }
@@ -177,6 +197,7 @@ export class Alert extends AbstractPureComponent2<IAlertProps> {
     }
 
     private handleCancel = (evt?: React.SyntheticEvent<HTMLElement>) => this.internalHandleCallbacks(false, evt);
+
     private handleConfirm = (evt: React.SyntheticEvent<HTMLElement>) => this.internalHandleCallbacks(true, evt);
 
     private internalHandleCallbacks(confirmed: boolean, evt?: React.SyntheticEvent<HTMLElement>) {

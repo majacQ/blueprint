@@ -21,21 +21,26 @@ import {
     AbstractPureComponent2,
     Alignment,
     Classes,
-    getRef,
-    IActionProps,
+    ActionProps,
     IElementRefProps,
-    IRefObject,
     Keys,
     MaybeElement,
     Utils,
 } from "../../common";
-import { Icon, IconName } from "../icon/icon";
+import { Icon, IconName, IconSize } from "../icon/icon";
 import { Spinner } from "../spinner/spinner";
 
-export interface IButtonProps extends IActionProps, IElementRefProps<any> {
+// eslint-disable-next-line deprecation/deprecation
+export type ButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = HTMLButtonElement> = IButtonProps<E>;
+/** @deprecated use ButtonProps */
+export interface IButtonProps<E extends HTMLButtonElement | HTMLAnchorElement = HTMLButtonElement>
+    extends ActionProps,
+        // eslint-disable-next-line deprecation/deprecation
+        IElementRefProps<E> {
     /**
      * If set to `true`, the button will display in an active state.
      * This is equivalent to setting `className={Classes.ACTIVE}`.
+     *
      * @default false
      */
     active?: boolean;
@@ -45,6 +50,7 @@ export interface IButtonProps extends IActionProps, IElementRefProps<any> {
      * within the button. Passing `"left"` or `"right"` will align the button
      * text to that side and push `icon` and `rightIcon` to either edge. Passing
      * `"center"` will center the text and icons together.
+     *
      * @default Alignment.CENTER
      */
     alignText?: Alignment;
@@ -58,6 +64,7 @@ export interface IButtonProps extends IActionProps, IElementRefProps<any> {
     /**
      * If set to `true`, the button will display a centered loading spinner instead of its contents.
      * The width of the button is not affected by the value of this prop.
+     *
      * @default false
      */
     loading?: boolean;
@@ -77,24 +84,33 @@ export interface IButtonProps extends IActionProps, IElementRefProps<any> {
     /**
      * HTML `type` attribute of button. Accepted values are `"button"`, `"submit"`, and `"reset"`.
      * Note that this prop has no effect on `AnchorButton`; it only affects `Button`.
+     *
      * @default "button"
      */
     type?: "submit" | "reset" | "button";
 }
 
+/** @deprecated use AnchorButtonProps */
+export type IAnchorButtonProps = ButtonProps<HTMLAnchorElement>;
+// eslint-disable-next-line deprecation/deprecation
+export type AnchorButtonProps = IAnchorButtonProps;
+
 export interface IButtonState {
     isActive: boolean;
 }
 
-export abstract class AbstractButton<H extends React.HTMLAttributes<HTMLElement>> extends AbstractPureComponent2<
-    IButtonProps & H,
+export abstract class AbstractButton<E extends HTMLButtonElement | HTMLAnchorElement> extends AbstractPureComponent2<
+    ButtonProps<E> &
+        (E extends HTMLButtonElement
+            ? React.ButtonHTMLAttributes<HTMLButtonElement>
+            : React.AnchorHTMLAttributes<HTMLAnchorElement>),
     IButtonState
 > {
     public state = {
         isActive: false,
     };
 
-    protected abstract buttonRef: HTMLElement | IRefObject<HTMLElement> | null;
+    protected abstract buttonRef: HTMLElement | null;
 
     private currentKeyDown?: number;
 
@@ -154,7 +170,7 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<HTMLElement>
         /* eslint-disable deprecation/deprecation */
         if (Keys.isKeyboardClick(e.which)) {
             this.setState({ isActive: false });
-            getRef(this.buttonRef)?.click();
+            this.buttonRef?.click();
         }
         this.currentKeyDown = undefined;
         this.props.onKeyUp?.(e);
@@ -170,7 +186,7 @@ export abstract class AbstractButton<H extends React.HTMLAttributes<HTMLElement>
     protected renderChildren(): React.ReactNode {
         const { children, icon, loading, rightIcon, text } = this.props;
         return [
-            loading && <Spinner key="loading" className={Classes.BUTTON_SPINNER} size={Icon.SIZE_LARGE} />,
+            loading && <Spinner key="loading" className={Classes.BUTTON_SPINNER} size={IconSize.LARGE} />,
             <Icon key="leftIcon" icon={icon} />,
             (!Utils.isReactNodeEmpty(text) || !Utils.isReactNodeEmpty(children)) && (
                 <span key="text" className={Classes.BUTTON_TEXT}>

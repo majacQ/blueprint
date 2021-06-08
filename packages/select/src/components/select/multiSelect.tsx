@@ -21,7 +21,7 @@ import {
     Classes as CoreClasses,
     DISPLAYNAME_PREFIX,
     IPopoverProps,
-    ITagInputProps,
+    TagInputProps,
     Keys,
     Popover,
     PopoverInteractionKind,
@@ -29,11 +29,15 @@ import {
     TagInput,
     TagInputAddMethod,
 } from "@blueprintjs/core";
+
 import { Classes, IListItemsProps } from "../../common";
 import { IQueryListRendererProps, QueryList } from "../query-list/queryList";
 
 // N.B. selectedItems should really be a required prop, but is left optional for backwards compatibility
 
+// eslint-disable-next-line deprecation/deprecation
+export type MultiSelectProps<T> = IMultiSelectProps<T>;
+/** @deprecated use MultiSelectProps */
 export interface IMultiSelectProps<T> extends IListItemsProps<T> {
     /**
      * Whether the component should take up the full width of its container.
@@ -67,6 +71,7 @@ export interface IMultiSelectProps<T> extends IListItemsProps<T> {
 
     /**
      * Input placeholder text. Shorthand for `tagInputProps.placeholder`.
+     *
      * @default "Search..."
      */
     placeholder?: string;
@@ -80,7 +85,7 @@ export interface IMultiSelectProps<T> extends IListItemsProps<T> {
 
     /** Props to spread to `TagInput`. Use `query` and `onQueryChange` to control the input. */
     // eslint-disable-next-line @typescript-eslint/ban-types
-    tagInputProps?: Partial<ITagInputProps> & object;
+    tagInputProps?: Partial<TagInputProps> & object;
 
     /** Custom renderer to transform an item into tag content. */
     tagRenderer: (item: T) => React.ReactNode;
@@ -90,7 +95,7 @@ export interface IMultiSelectState {
     isOpen: boolean;
 }
 
-export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>, IMultiSelectState> {
+export class MultiSelect<T> extends AbstractPureComponent2<MultiSelectProps<T>, IMultiSelectState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.MultiSelect`;
 
     public static defaultProps = {
@@ -99,7 +104,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
     };
 
     public static ofType<U>() {
-        return MultiSelect as new (props: IMultiSelectProps<U>) => MultiSelect<U>;
+        return MultiSelect as new (props: MultiSelectProps<U>) => MultiSelect<U>;
     }
 
     public state: IMultiSelectState = {
@@ -107,8 +112,11 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
     };
 
     private TypedQueryList = QueryList.ofType<T>();
+
     private input: HTMLInputElement | null = null;
+
     private queryList: QueryList<T> | null = null;
+
     private refHandlers = {
         input: (ref: HTMLInputElement | null) => {
             this.input = ref;
@@ -154,6 +162,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
         };
 
         return (
+            /* eslint-disable-next-line deprecation/deprecation */
             <Popover
                 autoFocus={false}
                 canEscapeKeyClose={true}
@@ -178,6 +187,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
                         inputRef={this.refHandlers.input}
                         inputProps={inputProps}
                         inputValue={listProps.query}
+                        /* eslint-disable-next-line react/jsx-no-bind */
                         onAdd={handleTagInputAdd}
                         onInputChange={listProps.handleQueryChange}
                         onRemove={this.handleTagRemove}
@@ -187,6 +197,7 @@ export class MultiSelect<T> extends AbstractPureComponent2<IMultiSelectProps<T>,
                 <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
                     {listProps.itemList}
                 </div>
+                {/* eslint-disable-next-line deprecation/deprecation */}
             </Popover>
         );
     };

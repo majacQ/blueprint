@@ -19,8 +19,8 @@ import {
     H5,
     HTMLSelect,
     Intent,
-    INumericInputProps,
-    IOptionProps,
+    NumericInputProps,
+    OptionProps,
     Label,
     NumericInput,
     Position,
@@ -58,8 +58,8 @@ const BUTTON_POSITIONS = [
     { label: "Right", value: Position.RIGHT },
 ];
 
-export class NumericInputBasicExample extends React.PureComponent<IExampleProps, INumericInputProps> {
-    public state: INumericInputProps = {
+export class NumericInputBasicExample extends React.PureComponent<IExampleProps, NumericInputProps> {
+    public state: NumericInputProps = {
         allowNumericCharactersOnly: true,
         buttonPosition: "right",
         disabled: false,
@@ -77,22 +77,33 @@ export class NumericInputBasicExample extends React.PureComponent<IExampleProps,
     };
 
     private handleMaxChange = handleNumberChange(max => this.setState({ max }));
+
     private handleMinChange = handleNumberChange(min => this.setState({ min }));
+
     private handleIntentChange = handleValueChange((intent: Intent) => this.setState({ intent }));
-    private handleButtonPositionChange = handleValueChange((buttonPosition: INumericInputProps["buttonPosition"]) =>
+
+    private handleButtonPositionChange = handleValueChange((buttonPosition: NumericInputProps["buttonPosition"]) =>
         this.setState({ buttonPosition }),
     );
+
     private handleLocaleChange = handleStringChange(locale => this.setState({ locale }));
+
     private toggleDisabled = handleBooleanChange(disabled => this.setState({ disabled }));
+
     private toggleLeftIcon = handleBooleanChange(leftIcon =>
         this.setState({ leftIcon: leftIcon ? "dollar" : undefined }),
     );
+
     private toggleFullWidth = handleBooleanChange(fill => this.setState({ fill }));
+
     private toggleLargeSize = handleBooleanChange(large => this.setState({ large }));
+
     private toggleNumericCharsOnly = handleBooleanChange(allowNumericCharactersOnly =>
         this.setState({ allowNumericCharactersOnly }),
     );
+
     private toggleSelectAllOnFocus = handleBooleanChange(selectAllOnFocus => this.setState({ selectAllOnFocus }));
+
     private toggleSelectAllOnIncrement = handleBooleanChange(selectAllOnIncrement => {
         this.setState({ selectAllOnIncrement });
     });
@@ -157,7 +168,7 @@ export class NumericInputBasicExample extends React.PureComponent<IExampleProps,
     private renderSelectMenu(
         label: string,
         value: number | string,
-        options: IOptionProps[],
+        options: OptionProps[],
         onChange: React.FormEventHandler,
     ) {
         return (

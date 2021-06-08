@@ -15,12 +15,13 @@
  */
 
 import { assert } from "chai";
+import { mount } from "enzyme";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { spy } from "sinon";
 
 import { expectPropValidationError } from "@blueprintjs/test-commons";
-import { mount } from "enzyme";
+
 import { Classes, IToaster, Toaster } from "../../src";
 import { TOASTER_CREATE_NULL, TOASTER_MAX_TOASTS_INVALID } from "../../src/common/errors";
 
@@ -146,8 +147,10 @@ describe("Toaster", () => {
         assert.lengthOf(toaster.getToasts(), 3, "expected 3 toasts");
     });
 
-    it("throws an error when max toast is set to a number less than 1", () => {
-        expectPropValidationError(Toaster, { maxToasts: 0 }, TOASTER_MAX_TOASTS_INVALID);
+    describe("validation", () => {
+        it("throws an error when max toast is set to a number less than 1", () => {
+            expectPropValidationError(Toaster, { maxToasts: 0 }, TOASTER_MAX_TOASTS_INVALID);
+        });
     });
 
     describe("with autoFocus set to true", () => {

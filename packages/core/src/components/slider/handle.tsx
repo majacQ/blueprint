@@ -17,16 +17,17 @@
 import classNames from "classnames";
 import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
+
 import { AbstractPureComponent2, Classes, Keys } from "../../common";
 import { DISPLAYNAME_PREFIX } from "../../common/props";
 import { clamp } from "../../common/utils";
-import { IHandleProps } from "./handleProps";
+import { HandleProps } from "./handleProps";
 import { formatPercentage } from "./sliderUtils";
 
 /**
  * Props for the internal <Handle> component needs some additional info from the parent Slider.
  */
-export interface IInternalHandleProps extends IHandleProps {
+export interface IInternalHandleProps extends HandleProps {
     disabled?: boolean;
     label: JSX.Element | string | undefined;
     max: number;
@@ -55,6 +56,7 @@ export class Handle extends AbstractPureComponent2<IInternalHandleProps, IHandle
     };
 
     private handleElement: HTMLElement | null = null;
+
     private refHandlers = {
         handle: (el: HTMLSpanElement) => (this.handleElement = el),
     };

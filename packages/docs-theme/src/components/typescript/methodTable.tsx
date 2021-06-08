@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { Code, Intent, IProps, Tag } from "@blueprintjs/core";
 import { isTag, ITsMethod, ITsParameter, ITsSignature } from "@documentalist/client";
 import classNames from "classnames";
 import * as React from "react";
+
+import { Code, Intent, Props, Tag } from "@blueprintjs/core";
+
 import { DocumentationContextTypes, IDocumentationContext } from "../../common/context";
 import { ModifierTable } from "../modifierTable";
 import { ApiHeader } from "./apiHeader";
@@ -25,12 +27,13 @@ import { DeprecatedTag } from "./deprecatedTag";
 
 export type Renderer<T> = (props: T) => React.ReactNode;
 
-export interface IMethodTableProps extends IProps {
+export interface IMethodTableProps extends Props {
     data: ITsMethod;
 }
 
 export class MethodTable extends React.PureComponent<IMethodTableProps> {
     public static contextTypes = DocumentationContextTypes;
+
     public static displayName = "Docs2.MethodTable";
 
     public context: IDocumentationContext;

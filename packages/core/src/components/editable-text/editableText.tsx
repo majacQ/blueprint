@@ -17,12 +17,16 @@
 import classNames from "classnames";
 import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
+
 import { AbstractPureComponent2, Classes, Keys } from "../../common";
-import { DISPLAYNAME_PREFIX, IIntentProps, IProps } from "../../common/props";
+import { DISPLAYNAME_PREFIX, IntentProps, Props } from "../../common/props";
 import { clamp } from "../../common/utils";
 import { Browser } from "../../compatibility";
 
-export interface IEditableTextProps extends IIntentProps, IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type EditableTextProps = IEditableTextProps;
+/** @deprecated use EditableTextProps */
+export interface IEditableTextProps extends IntentProps, Props {
     /**
      * EXPERIMENTAL FEATURE.
      *
@@ -32,6 +36,7 @@ export interface IEditableTextProps extends IIntentProps, IProps {
      *
      * This behavior can help in certain applications where, for example, a custom right-click
      * context menu is used to supply clipboard copy and paste functionality.
+     *
      * @default false
      */
     alwaysRenderInput?: boolean;
@@ -40,6 +45,7 @@ export interface IEditableTextProps extends IIntentProps, IProps {
      * If `true` and in multiline mode, the `enter` key will trigger onConfirm and `mod+enter`
      * will insert a newline. If `false`, the key bindings are inverted such that `enter`
      * adds a newline.
+     *
      * @default false
      */
     confirmOnEnterKey?: boolean;
@@ -49,6 +55,7 @@ export interface IEditableTextProps extends IIntentProps, IProps {
 
     /**
      * Whether the text can be edited.
+     *
      * @default false
      */
     disabled?: boolean;
@@ -65,6 +72,7 @@ export interface IEditableTextProps extends IIntentProps, IProps {
     /**
      * Whether the component supports multiple lines of text.
      * This prop should not be changed during the component's lifetime.
+     *
      * @default false
      */
     multiline?: boolean;
@@ -76,12 +84,14 @@ export interface IEditableTextProps extends IIntentProps, IProps {
 
     /**
      * Minimum number of lines (essentially minimum height), when `multiline`.
+     *
      * @default 1
      */
     minLines?: number;
 
     /**
      * Placeholder text when there is no value.
+     *
      * @default "Click to Edit"
      */
     placeholder?: string;
@@ -90,6 +100,7 @@ export interface IEditableTextProps extends IIntentProps, IProps {
      * Whether the entire text field should be selected on focus.
      * If `false`, the cursor is placed at the end of the text.
      * This prop is ignored on inputs with type other then text, search, url, tel and password. See https://html.spec.whatwg.org/multipage/input.html#do-not-apply for details.
+     *
      * @default false
      */
     selectAllOnFocus?: boolean;
@@ -132,10 +143,10 @@ const BUFFER_WIDTH_DEFAULT = 5;
 const BUFFER_WIDTH_IE = 30;
 
 @polyfill
-export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEditableTextState> {
+export class EditableText extends AbstractPureComponent2<EditableTextProps, IEditableTextState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.EditableText`;
 
-    public static defaultProps: IEditableTextProps = {
+    public static defaultProps: EditableTextProps = {
         alwaysRenderInput: false,
         confirmOnEnterKey: false,
         defaultValue: "",
@@ -149,7 +160,9 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
     };
 
     private inputElement: HTMLInputElement | HTMLTextAreaElement | null = null;
+
     private valueElement: HTMLSpanElement | null = null;
+
     private refHandlers = {
         content: (spanElement: HTMLSpanElement | null) => {
             this.valueElement = spanElement;
@@ -177,7 +190,7 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         },
     };
 
-    public constructor(props: IEditableTextProps, context?: any) {
+    public constructor(props: EditableTextProps, context?: any) {
         super(props, context);
 
         const value = props.value == null ? props.defaultValue : props.value;
@@ -246,7 +259,7 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         this.updateInputDimensions();
     }
 
-    public componentDidUpdate(prevProps: IEditableTextProps, prevState: IEditableTextState) {
+    public componentDidUpdate(prevProps: EditableTextProps, prevState: IEditableTextState) {
         const newState: IEditableTextState = {};
         // allow setting the value to undefined/null in controlled mode
         if (this.props.value !== prevProps.value && (prevProps.value != null || this.props.value != null)) {
@@ -264,7 +277,18 @@ export class EditableText extends AbstractPureComponent2<IEditableTextProps, IEd
         if (this.state.isEditing && !prevState.isEditing) {
             this.props.onEdit?.(this.state.value);
         }
-        this.updateInputDimensions();
+        // updateInputDimensions is an expensive method. Call it only when the props
+        // it depends on change
+        if (
+            this.state.value !== prevState.value ||
+            this.props.alwaysRenderInput !== prevProps.alwaysRenderInput ||
+            this.props.maxLines !== prevProps.maxLines ||
+            this.props.minLines !== prevProps.minLines ||
+            this.props.minWidth !== prevProps.minWidth ||
+            this.props.multiline !== prevProps.multiline
+        ) {
+            this.updateInputDimensions();
+        }
     }
 
     public cancelEditing = () => {

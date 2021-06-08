@@ -16,7 +16,8 @@
 
 import * as React from "react";
 
-import { AbstractComponent2, DISPLAYNAME_PREFIX, IProps, Keys, Menu, Utils } from "@blueprintjs/core";
+import { AbstractComponent2, DISPLAYNAME_PREFIX, Props, Keys, Menu, Utils } from "@blueprintjs/core";
+
 import {
     executeItemsEqual,
     getActiveItem,
@@ -29,6 +30,9 @@ import {
     renderFilteredItems,
 } from "../../common";
 
+// eslint-disable-next-line deprecation/deprecation
+export type QueryListProps<T> = IQueryListProps<T>;
+/** @deprecated use QueryListProps */
 export interface IQueryListProps<T> extends IListItemsProps<T> {
     /**
      * Initial active item, useful if the parent component is controlling its selectedItem but
@@ -58,6 +62,7 @@ export interface IQueryListProps<T> extends IListItemsProps<T> {
 
     /**
      * Whether the list is disabled.
+     *
      * @default false
      */
     disabled?: boolean;
@@ -69,7 +74,7 @@ export interface IQueryListProps<T> extends IListItemsProps<T> {
  */
 export interface IQueryListRendererProps<T> // Omit `createNewItem`, because it's used strictly for internal tracking.
     extends Pick<IQueryListState<T>, "activeItem" | "filteredItems" | "query">,
-        IProps {
+        Props {
     /**
      * Selection handler that should be invoked when a new item has been chosen,
      * perhaps because the user clicked it.
@@ -135,7 +140,7 @@ export interface IQueryListState<T> {
     query: string;
 }
 
-export class QueryList<T> extends AbstractComponent2<IQueryListProps<T>, IQueryListState<T>> {
+export class QueryList<T> extends AbstractComponent2<QueryListProps<T>, IQueryListState<T>> {
     public static displayName = `${DISPLAYNAME_PREFIX}.QueryList`;
 
     public static defaultProps = {
@@ -144,10 +149,11 @@ export class QueryList<T> extends AbstractComponent2<IQueryListProps<T>, IQueryL
     };
 
     public static ofType<U>() {
-        return QueryList as new (props: IQueryListProps<U>) => QueryList<U>;
+        return QueryList as new (props: QueryListProps<U>) => QueryList<U>;
     }
 
     private itemsParentRef?: HTMLElement | null;
+
     private refHandlers = {
         itemsParent: (ref: HTMLElement | null) => (this.itemsParentRef = ref),
     };
@@ -181,7 +187,7 @@ export class QueryList<T> extends AbstractComponent2<IQueryListProps<T>, IQueryL
      */
     private isEnterKeyPressed = false;
 
-    public constructor(props: IQueryListProps<T>, context?: any) {
+    public constructor(props: QueryListProps<T>, context?: any) {
         super(props, context);
 
         const { query = "" } = props;
@@ -220,7 +226,7 @@ export class QueryList<T> extends AbstractComponent2<IQueryListProps<T>, IQueryL
         });
     }
 
-    public componentDidUpdate(prevProps: IQueryListProps<T>) {
+    public componentDidUpdate(prevProps: QueryListProps<T>) {
         if (this.props.activeItem !== undefined && this.props.activeItem !== this.state.activeItem) {
             this.shouldCheckActiveItemInViewport = true;
             this.setState({ activeItem: this.props.activeItem });
@@ -532,6 +538,7 @@ export class QueryList<T> extends AbstractComponent2<IQueryListProps<T>, IQueryL
     /**
      * Get the next enabled item, moving in the given direction from the start
      * index. A `null` return value means no suitable item was found.
+     *
      * @param direction amount to move in each iteration, typically +/-1
      * @param startIndex item to start iteration
      */
@@ -585,7 +592,7 @@ function pxToNumber(value: string | null) {
     return value == null ? 0 : parseInt(value.slice(0, -2), 10);
 }
 
-function getMatchingItem<T>(query: string, { items, itemPredicate }: IQueryListProps<T>): T | undefined {
+function getMatchingItem<T>(query: string, { items, itemPredicate }: QueryListProps<T>): T | undefined {
     if (Utils.isFunction(itemPredicate)) {
         // .find() doesn't exist in ES5. Alternative: use a for loop instead of
         // .filter() so that we can return as soon as we find the first match.
@@ -599,7 +606,7 @@ function getMatchingItem<T>(query: string, { items, itemPredicate }: IQueryListP
     return undefined;
 }
 
-function getFilteredItems<T>(query: string, { items, itemPredicate, itemListPredicate }: IQueryListProps<T>) {
+function getFilteredItems<T>(query: string, { items, itemPredicate, itemListPredicate }: QueryListProps<T>) {
     if (Utils.isFunction(itemListPredicate)) {
         // note that implementations can reorder the items here
         return itemListPredicate(query, items);
@@ -631,6 +638,7 @@ function isItemDisabled<T>(item: T | null, index: number, itemDisabled?: IListIt
 /**
  * Get the next enabled item, moving in the given direction from the start
  * index. A `null` return value means no suitable item was found.
+ *
  * @param items the list of items
  * @param itemDisabled callback to determine if a given item is disabled
  * @param direction amount to move in each iteration, typically +/-1

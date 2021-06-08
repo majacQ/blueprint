@@ -36,6 +36,10 @@ export const HOTKEYS_WARN_DECORATOR_NO_METHOD = ns + ` @HotkeysTarget-decorated 
 export const HOTKEYS_WARN_DECORATOR_NEEDS_REACT_ELEMENT =
     ns + ` "@HotkeysTarget-decorated components must return a single JSX.Element or an empty render.`;
 
+export const HOTKEYS_TARGET2_CHILDREN_LOCAL_HOTKEYS =
+    ns +
+    ` <HotkeysTarget2> was configured with local hotkeys, but you did not use the generated event handlers to bind their event handlers. Try using a render function as the child of this component.`;
+
 export const INPUT_WARN_LEFT_ELEMENT_LEFT_ICON_MUTEX =
     ns + ` <InputGroup> leftElement and leftIcon prop are mutually exclusive, with leftElement taking priority.`;
 
@@ -60,8 +64,6 @@ export const PANEL_STACK_REQUIRES_PANEL = ns + ` <PanelStack> requires at least 
 export const OVERFLOW_LIST_OBSERVE_PARENTS_CHANGED =
     ns + ` <OverflowList> does not support changing observeParents after mounting.`;
 
-// TODO (clewis): Migrate old Popover validation errors to the component formerly known as Popover2.
-// See: https://github.com/palantir/blueprint/issues/1940
 export const POPOVER_REQUIRES_TARGET = ns + ` <Popover> requires target prop or at least one child element.`;
 export const POPOVER_HAS_BACKDROP_INTERACTION =
     ns + ` <Popover hasBackdrop={true}> requires interactionKind={PopoverInteractionKind.CLICK}.`;
@@ -75,6 +77,8 @@ export const POPOVER_WARN_DOUBLE_TARGET =
     ns + ` <Popover> with children ignores target prop; use either prop or children.`;
 export const POPOVER_WARN_EMPTY_CONTENT = ns + ` Disabling <Popover> with empty/whitespace content...`;
 export const POPOVER_WARN_HAS_BACKDROP_INLINE = ns + ` <Popover usePortal={false}> ignores hasBackdrop`;
+export const POPOVER_WARN_PLACEMENT_AND_POSITION_MUTEX =
+    ns + ` <Popover> supports either placement or position prop, not both.`;
 export const POPOVER_WARN_UNCONTROLLED_ONINTERACTION = ns + ` <Popover> onInteraction is ignored when uncontrolled.`;
 
 export const PORTAL_CONTEXT_CLASS_NAME_STRING = ns + ` <Portal> context blueprintPortalClassName must be string`;

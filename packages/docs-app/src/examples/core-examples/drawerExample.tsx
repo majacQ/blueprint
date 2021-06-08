@@ -22,9 +22,10 @@ import {
     Code,
     Divider,
     Drawer,
+    DrawerSize,
     H5,
     HTMLSelect,
-    IOptionProps,
+    OptionProps,
     Label,
     Position,
     Switch,
@@ -36,6 +37,7 @@ import {
     handleValueChange,
     IExampleProps,
 } from "@blueprintjs/docs-theme";
+
 import { IBlueprintExampleData } from "../../tags/types";
 
 export interface IDrawerExampleState {
@@ -63,12 +65,19 @@ export class DrawerExample extends React.PureComponent<IExampleProps<IBlueprintE
     };
 
     private handleAutoFocusChange = handleBooleanChange(autoFocus => this.setState({ autoFocus }));
+
     private handleBackdropChange = handleBooleanChange(hasBackdrop => this.setState({ hasBackdrop }));
+
     private handleEnforceFocusChange = handleBooleanChange(enforceFocus => this.setState({ enforceFocus }));
+
     private handleEscapeKeyChange = handleBooleanChange(canEscapeKeyClose => this.setState({ canEscapeKeyClose }));
+
     private handleUsePortalChange = handleBooleanChange(usePortal => this.setState({ usePortal }));
+
     private handlePositionChange = handleValueChange((position: Position) => this.setState({ position }));
+
     private handleOutsideClickChange = handleBooleanChange(val => this.setState({ canOutsideClickClose: val }));
+
     private handleSizeChange = handleStringChange(size => this.setState({ size }));
 
     public render() {
@@ -153,14 +162,15 @@ export class DrawerExample extends React.PureComponent<IExampleProps<IBlueprintE
     }
 
     private handleOpen = () => this.setState({ isOpen: true });
+
     private handleClose = () => this.setState({ isOpen: false });
 }
 
-const SIZES: Array<string | IOptionProps> = [
+const SIZES: Array<string | OptionProps> = [
     { label: "Default", value: undefined },
-    { label: "Small", value: Drawer.SIZE_SMALL },
-    { label: "Standard", value: Drawer.SIZE_STANDARD },
-    { label: "Large", value: Drawer.SIZE_LARGE },
+    { label: "Small", value: DrawerSize.SMALL },
+    { label: "Standard", value: DrawerSize.STANDARD },
+    { label: "Large", value: DrawerSize.LARGE },
     "72%",
     "560px",
 ];

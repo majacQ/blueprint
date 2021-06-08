@@ -20,22 +20,19 @@
 import * as React from "react";
 
 import { DISPLAYNAME_PREFIX, removeNonHTMLProps } from "../../common/props";
-import { IRefCallback, IRefObject, isRefObject } from "../../common/refs";
-import { AbstractButton, IButtonProps } from "./abstractButton";
+import { IRef, refHandler, setRef } from "../../common/refs";
+import { AbstractButton, IButtonProps, IAnchorButtonProps, ButtonProps, AnchorButtonProps } from "./abstractButton";
 
-export { IButtonProps };
+// eslint-disable-next-line deprecation/deprecation
+export { IAnchorButtonProps, IButtonProps, ButtonProps, AnchorButtonProps };
 
-export class Button extends AbstractButton<React.ButtonHTMLAttributes<HTMLButtonElement>> {
+export class Button extends AbstractButton<HTMLButtonElement> {
     public static displayName = `${DISPLAYNAME_PREFIX}.Button`;
 
     // need to keep this ref so that we can access it in AbstractButton#handleKeyUp
-    protected buttonRef: HTMLButtonElement | IRefObject<HTMLButtonElement> | null = null;
-    protected handleRef = isRefObject<HTMLButtonElement>(this.props.elementRef)
-        ? (this.buttonRef = this.props.elementRef)
-        : (ref: HTMLButtonElement | null) => {
-              this.buttonRef = ref;
-              (this.props.elementRef as IRefCallback)?.(ref);
-          };
+    public buttonRef: HTMLButtonElement | null = null;
+
+    protected handleRef: IRef<HTMLButtonElement> = refHandler(this, "buttonRef", this.props.elementRef);
 
     public render() {
         return (
@@ -49,19 +46,23 @@ export class Button extends AbstractButton<React.ButtonHTMLAttributes<HTMLButton
             </button>
         );
     }
+
+    public componentDidUpdate(prevProps: ButtonProps) {
+        if (prevProps.elementRef !== this.props.elementRef) {
+            setRef(prevProps.elementRef, null);
+            this.handleRef = refHandler(this, "buttonRef", this.props.elementRef);
+            setRef(this.props.elementRef, this.buttonRef);
+        }
+    }
 }
 
-export class AnchorButton extends AbstractButton<React.AnchorHTMLAttributes<HTMLAnchorElement>> {
+export class AnchorButton extends AbstractButton<HTMLAnchorElement> {
     public static displayName = `${DISPLAYNAME_PREFIX}.AnchorButton`;
 
     // need to keep this ref so that we can access it in AbstractButton#handleKeyUp
-    protected buttonRef: HTMLAnchorElement | IRefObject<HTMLAnchorElement> | null = null;
-    protected handleRef = isRefObject<HTMLAnchorElement>(this.props.elementRef)
-        ? (this.buttonRef = this.props.elementRef)
-        : (ref: HTMLAnchorElement | null) => {
-              this.buttonRef = ref;
-              (this.props.elementRef as IRefCallback)?.(ref);
-          };
+    public buttonRef: HTMLAnchorElement | null = null;
+
+    protected handleRef: IRef<HTMLAnchorElement> = refHandler(this, "buttonRef", this.props.elementRef);
 
     public render() {
         const { href, tabIndex = 0 } = this.props;
@@ -79,5 +80,13 @@ export class AnchorButton extends AbstractButton<React.AnchorHTMLAttributes<HTML
                 {this.renderChildren()}
             </a>
         );
+    }
+
+    public componentDidUpdate(prevProps: AnchorButtonProps) {
+        if (prevProps.elementRef !== this.props.elementRef) {
+            setRef(prevProps.elementRef, null);
+            this.handleRef = refHandler(this, "buttonRef", this.props.elementRef);
+            setRef(this.props.elementRef, this.buttonRef);
+        }
     }
 }
