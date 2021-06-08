@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { IProps } from "@blueprintjs/core";
 import * as React from "react";
+
+import { Props } from "@blueprintjs/core";
+
 import { DocumentationContextTypes, IDocumentationContext } from "../../common/context";
 
-export interface IApiLinkProps extends IProps {
+export interface IApiLinkProps extends Props {
     children?: never;
     name: string;
 }
@@ -28,7 +30,12 @@ export interface IApiLinkProps extends IProps {
  */
 export class ApiLink extends React.PureComponent<IApiLinkProps> {
     public static contextTypes = DocumentationContextTypes;
+  <<<<<<< ad/form-component
+
+    public context: IDocumentationContext;
+  =======
     public declare context: IDocumentationContext;
+  >>>>>>> ad/tsconfig-flag
 
     public render() {
         const { className, name } = this.props;

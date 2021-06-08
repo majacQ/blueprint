@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { IMenuItemProps, MenuItem } from "@blueprintjs/core";
 import * as React from "react";
+
+import { MenuItemProps, MenuItem } from "@blueprintjs/core";
 
 import { Clipboard } from "../../common/clipboard";
 import { Regions } from "../../regions";
 import { IMenuContext } from "./menuContext";
 
-export interface ICopyCellsMenuItemProps extends IMenuItemProps {
+export interface ICopyCellsMenuItemProps extends MenuItemProps {
     /**
      * The `IMenuContext` that launched the menu.
      */

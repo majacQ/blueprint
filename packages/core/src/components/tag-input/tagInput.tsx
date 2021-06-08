@@ -18,10 +18,10 @@ import classNames from "classnames";
 import * as React from "react";
 import { polyfill } from "react-lifecycles-compat";
 
-import { AbstractPureComponent2, Classes, Keys, Utils } from "../../common";
-import { DISPLAYNAME_PREFIX, HTMLInputProps, IIntentProps, IProps, MaybeElement } from "../../common/props";
-import { Icon, IconName } from "../icon/icon";
-import { ITagProps, Tag } from "../tag/tag";
+import { AbstractPureComponent2, Classes, IRef, Keys, refHandler, setRef, Utils } from "../../common";
+import { DISPLAYNAME_PREFIX, HTMLInputProps, IntentProps, Props, MaybeElement } from "../../common/props";
+import { Icon, IconName, IconSize } from "../icon/icon";
+import { TagProps, Tag } from "../tag/tag";
 
 /**
  * The method in which a `TagInput` value was added.
@@ -33,10 +33,14 @@ import { ITagProps, Tag } from "../tag/tag";
  */
 export type TagInputAddMethod = "default" | "blur" | "paste";
 
-export interface ITagInputProps extends IIntentProps, IProps {
+// eslint-disable-next-line deprecation/deprecation
+export type TagInputProps = ITagInputProps;
+/** @deprecated use TagInputProps */
+export interface ITagInputProps extends IntentProps, Props {
     /**
      * If true, `onAdd` will be invoked when the input loses focus.
      * Otherwise, `onAdd` is only invoked when `enter` is pressed.
+     *
      * @default false
      */
     addOnBlur?: boolean;
@@ -58,6 +62,7 @@ export interface ITagInputProps extends IIntentProps, IProps {
      * Whether the component is non-interactive.
      * Note that you'll also need to disable the component's `rightElement`,
      * if appropriate.
+     *
      * @default false
      */
     disabled?: boolean;
@@ -103,14 +108,6 @@ export interface ITagInputProps extends IIntentProps, IProps {
      *
      * This callback essentially implements basic `onAdd` and `onRemove` functionality and merges
      * the two handlers into one to simplify controlled usage.
-     *
-     * **Note about typed usage:** Your handler can declare a subset type of `React.ReactNode[]`,
-     * such as `string[]` or `Array<string | JSX.Element>`, to match the type of your `values` array:
-     * ```tsx
-     * <TagInput
-     *     onChange={(values: string[]) => this.setState({ values })}
-     *     values={["apple", "banana", "cherry"]}
-     * />
      * ```
      */
     onChange?: (values: React.ReactNode[]) => boolean | void;
@@ -161,6 +158,7 @@ export interface ITagInputProps extends IIntentProps, IProps {
     /**
      * Separator pattern used to split input text into multiple values. Default value splits on commas and newlines.
      * Explicit `false` value disables splitting (note that `onAdd` will still receive an array of length 1).
+     *
      * @default /[,\n\r]/
      */
     separator?: string | RegExp | false;
@@ -172,7 +170,7 @@ export interface ITagInputProps extends IIntentProps, IProps {
      * If you define `onRemove` here then you will have to implement your own tag removal
      * handling as `TagInput`'s own `onRemove` handler will never be invoked.
      */
-    tagProps?: ITagProps | ((value: React.ReactNode, index: number) => ITagProps);
+    tagProps?: TagProps | ((value: React.ReactNode, index: number) => TagProps);
 
     /**
      * Controlled tag values. Each value will be rendered inside a `Tag`, which can be customized
@@ -197,10 +195,10 @@ export interface ITagInputState {
 const NONE = -1;
 
 @polyfill
-export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputState> {
+export class TagInput extends AbstractPureComponent2<TagInputProps, ITagInputState> {
     public static displayName = `${DISPLAYNAME_PREFIX}.TagInput`;
 
-    public static defaultProps: Partial<ITagInputProps> = {
+    public static defaultProps: Partial<TagInputProps> = {
         addOnBlur: false,
         addOnPaste: true,
         inputProps: {},
@@ -209,7 +207,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
     };
 
     public static getDerivedStateFromProps(
-        props: Readonly<ITagInputProps>,
+        props: Readonly<TagInputProps>,
         state: Readonly<ITagInputState>,
     ): Partial<ITagInputState> | null {
         if (props.inputValue !== state.prevInputValueProp) {
@@ -227,13 +225,9 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
         isInputFocused: false,
     };
 
-    private inputElement: HTMLInputElement;
-    private refHandlers = {
-        input: (ref: HTMLInputElement) => {
-            this.inputElement = ref;
-            this.props.inputRef?.(ref);
-        },
-    };
+    public inputElement: HTMLInputElement | null = null;
+
+    private handleRef: IRef<HTMLInputElement> = refHandler(this, "inputElement", this.props.inputRef);
 
     public render() {
         const { className, disabled, fill, inputProps, intent, large, leftIcon, placeholder, values } = this.props;
@@ -254,14 +248,14 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
 
         // use placeholder prop only if it's defined and values list is empty or contains only falsy values
         const isSomeValueDefined = values.some(val => !!val);
-        const resolvedPlaceholder = placeholder == null || isSomeValueDefined ? inputProps.placeholder : placeholder;
+        const resolvedPlaceholder = placeholder == null || isSomeValueDefined ? inputProps?.placeholder : placeholder;
 
         return (
             <div className={classes} onBlur={this.handleContainerBlur} onClick={this.handleContainerClick}>
                 <Icon
                     className={Classes.TAG_INPUT_ICON}
                     icon={leftIcon}
-                    iconSize={isLarge ? Icon.SIZE_LARGE : Icon.SIZE_STANDARD}
+                    iconSize={isLarge ? IconSize.LARGE : IconSize.STANDARD}
                 />
                 <div className={Classes.TAG_INPUT_VALUES}>
                     {values.map(this.maybeRenderTag)}
@@ -275,14 +269,22 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
                         onKeyUp={this.handleInputKeyUp}
                         onPaste={this.handleInputPaste}
                         placeholder={resolvedPlaceholder}
-                        ref={this.refHandlers.input}
-                        className={classNames(Classes.INPUT_GHOST, inputProps.className)}
+                        ref={this.handleRef}
+                        className={classNames(Classes.INPUT_GHOST, inputProps?.className)}
                         disabled={disabled}
                     />
                 </div>
                 {this.props.rightElement}
             </div>
         );
+    }
+
+    public componentDidUpdate(prevProps: TagInputProps) {
+        if (prevProps.inputRef !== this.props.inputRef) {
+            setRef(prevProps.inputRef, null);
+            this.handleRef = refHandler(this, "inputElement", this.props.inputRef);
+            setRef(this.props.inputRef, this.inputElement);
+        }
     }
 
     private addTags = (value: string, method: TagInputAddMethod = "default") => {
@@ -311,7 +313,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
                 data-tag-index={index}
                 key={tag + "__" + index}
                 large={large}
-                onRemove={this.props.disabled ? null : this.handleRemoveTag}
+                onRemove={this.props.disabled ? undefined : this.handleRemoveTag}
                 {...props}
             >
                 {tag}
@@ -356,13 +358,11 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
     }
 
     private handleContainerClick = () => {
-        if (this.inputElement != null) {
-            this.inputElement.focus();
-        }
+        this.inputElement?.focus();
     };
 
     private handleContainerBlur = ({ currentTarget }: React.FocusEvent<HTMLDivElement>) => {
-        requestAnimationFrame(() => {
+        this.requestAnimationFrame(() => {
             // we only care if the blur event is leaving the container.
             // defer this check using rAF so activeElement will have updated.
             if (!currentTarget.contains(document.activeElement)) {
@@ -376,13 +376,13 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
 
     private handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
         this.setState({ isInputFocused: true });
-        this.props.inputProps.onFocus?.(event);
+        this.props.inputProps?.onFocus?.(event);
     };
 
     private handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ activeIndex: NONE, inputValue: event.currentTarget.value });
         this.props.onInputChange?.(event);
-        this.props.inputProps.onChange?.(event);
+        this.props.inputProps?.onChange?.(event);
     };
 
     private handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -430,7 +430,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
 
         // special case as a UX nicety: if the user pasted only one value with no delimiters in it, leave that value in
         // the input field so that the user can refine it before converting it to a tag manually.
-        if (separator === false || value.split(separator).length === 1) {
+        if (separator === false || value.split(separator!).length === 1) {
             return;
         }
 
@@ -440,7 +440,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
 
     private handleRemoveTag = (event: React.MouseEvent<HTMLSpanElement>) => {
         // using data attribute to simplify callback logic -- one handler for all children
-        const index = +event.currentTarget.parentElement.getAttribute("data-tag-index");
+        const index = +event.currentTarget.parentElement!.getAttribute("data-tag-index")!;
         this.removeIndexFromValues(index);
     };
 
@@ -478,7 +478,7 @@ export class TagInput extends AbstractPureComponent2<ITagInputProps, ITagInputSt
         activeIndex: number,
     ) {
         this.props[propCallbackName]?.(event, activeIndex === NONE ? undefined : activeIndex);
-        this.props.inputProps[propCallbackName]?.(event);
+        this.props.inputProps![propCallbackName]?.(event);
     }
 
     /** Returns whether the given index represents a valid item in `this.props.values`. */

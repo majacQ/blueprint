@@ -1,5 +1,9 @@
 {
+  <<<<<<< ad/form-component
+    "version": "4.0.3",
+  =======
     "version": "3.9.7",
+  >>>>>>> ad/tsconfig-flag
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "declaration": true,
@@ -18,6 +22,7 @@
         "pretty": true,
         "removeComments": false,
         "sourceMap": true,
+        "strict": true,
         "stripInternal": true,
         "target": "es5",
         "typeRoots": ["../node_modules/@types"],
