@@ -238,7 +238,9 @@ describe("<OverflowList>", function (this) {
 
         /** Assert ordered IDs of overflow items. */
         wrapper.assertOverflowItems = (...ids: number[]) => {
-            const overflowItems = wrapper.find(TestOverflow).prop("items");
+            // enzyme's wrapper.find returns `any` type here, so we need to cast to the correct type
+            // see: https://github.com/palantir/blueprint/pull/7161/files#r1915372750
+            const overflowItems: TestItemProps[] = wrapper.find(TestOverflow).prop("items");
             assert.sameMembers(
                 overflowItems.map(it => it.id),
                 ids,
