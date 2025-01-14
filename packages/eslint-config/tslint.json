@@ -1,6 +1,4 @@
 {
     "defaultSeverity": "error",
-    "rules": {
-        "object-literal-sort-keys": true
-    }
+    "rules": {}
 }
